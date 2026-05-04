@@ -1,0 +1,2329 @@
+<!DOCTYPE html>
+<html lang="ar" dir="ltr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="theme-color" content="#1c1917" />
+<title>Portfolio Tracker</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html, body { background: #fafaf9; font-family: Georgia, 'Times New Roman', serif; color: #1c1917; min-height: 100vh; }
+  body { padding: 16px 16px 80px; max-width: 480px; margin: 0 auto; }
+
+  .header { padding-bottom: 16px; border-bottom: 2px solid #1c1917; margin-bottom: 24px; }
+  .header-row { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 4px; }
+  .label-tiny { font-size: 11px; text-transform: uppercase; letter-spacing: 0.3em; color: #57534e; }
+  .date-tiny { font-size: 10px; color: #78716c; letter-spacing: 0.15em; }
+  h1 { font-size: 30px; font-weight: bold; font-style: italic; color: #1c1917; }
+
+  .tabs { display: flex; margin-bottom: 24px; border-bottom: 1px solid #d6d3d1; overflow-x: auto; }
+  .tab { flex: 1; min-width: 80px; padding: 12px 6px; font-size: 10px; text-transform: uppercase; letter-spacing: 0.18em; color: #78716c; background: none; border: none; cursor: pointer; font-family: inherit; border-bottom: 2px solid transparent; transition: all 0.2s; white-space: nowrap; }
+  .tab.active { color: #1c1917; border-bottom-color: #1c1917; font-weight: bold; }
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  .total-card { background: #1c1917; color: #fafaf9; padding: 24px; margin-bottom: 24px; position: relative; overflow: hidden; }
+  .total-card::after { content: '$'; position: absolute; top: -40px; right: -10px; font-size: 180px; font-weight: bold; opacity: 0.05; line-height: 1; }
+  .total-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.3em; color: #a8a29e; margin-bottom: 8px; }
+  .total-value { font-size: 36px; font-weight: bold; margin-bottom: 12px; }
+  .total-pnl-row { display: flex; align-items: center; gap: 8px; padding-top: 12px; border-top: 1px solid #44403c; font-size: 13px; }
+  .pnl-positive { color: #34d399; }
+  .pnl-negative { color: #fb7185; }
+  .total-cost { color: #a8a29e; font-size: 11px; margin-left: auto; }
+
+  .section-title { font-size: 11px; text-transform: uppercase; letter-spacing: 0.25em; color: #44403c; margin-bottom: 12px; }
+
+  .panel { background: white; border: 1px solid #d6d3d1; margin-bottom: 24px; }
+  .panel-header { display: flex; align-items: center; justify-content: space-between; padding: 16px; border-bottom: 1px solid #e7e5e4; }
+  .panel-header h3 { font-size: 11px; text-transform: uppercase; letter-spacing: 0.25em; color: #44403c; font-weight: normal; }
+  .btn-edit { background: none; border: none; cursor: pointer; font-size: 12px; color: #57534e; font-family: inherit; padding: 0; }
+  .btn-icon { background: none; border: none; cursor: pointer; padding: 4px 8px; font-family: inherit; font-size: 13px; }
+  .btn-save { color: #047857; }
+  .btn-cancel { color: #be123c; }
+  .btn-primary { background: #1c1917; color: #fafaf9; border: none; padding: 12px 24px; font-family: inherit; font-size: 12px; text-transform: uppercase; letter-spacing: 0.2em; cursor: pointer; width: 100%; }
+  .btn-primary:hover { background: #44403c; }
+  .btn-secondary { background: white; color: #1c1917; border: 1px solid #1c1917; padding: 8px 16px; font-family: inherit; font-size: 11px; text-transform: uppercase; letter-spacing: 0.15em; cursor: pointer; }
+  .btn-danger-link { color: #be123c; background: none; border: none; cursor: pointer; font-family: inherit; font-size: 14px; }
+
+  .input-row { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; border-bottom: 1px solid #f5f5f4; }
+  .input-row:last-child { border-bottom: none; }
+  .input-label { font-size: 12px; color: #57534e; }
+  .input-value { font-size: 13px; font-weight: 500; color: #1c1917; }
+  .input-edit-wrap { display: flex; align-items: center; gap: 4px; }
+  .input-symbol { color: #78716c; font-size: 13px; }
+  .input-field { width: 110px; text-align: right; font-size: 13px; border: none; border-bottom: 1px solid #a8a29e; background: transparent; font-family: inherit; padding: 2px 0; }
+  .input-field:focus { outline: none; border-bottom-color: #1c1917; }
+
+  .asset-card { background: white; border: 1px solid #d6d3d1; padding: 16px; margin-bottom: 12px; }
+  .asset-row { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 8px; }
+  .asset-left { display: flex; align-items: center; gap: 12px; }
+  .asset-color-bar { width: 8px; height: 32px; }
+  .asset-name { font-size: 13px; font-weight: bold; letter-spacing: 0.1em; color: #1c1917; }
+  .asset-weight { font-size: 10px; color: #78716c; text-transform: uppercase; letter-spacing: 0.15em; }
+  .asset-right { text-align: right; }
+  .asset-value { font-size: 18px; font-weight: bold; color: #1c1917; }
+  .asset-pnl { font-size: 12px; font-weight: 500; }
+  .asset-pnl.pos { color: #047857; }
+  .asset-pnl.neg { color: #be123c; }
+  .weight-bar { height: 4px; background: #f5f5f4; margin-top: 8px; }
+  .weight-fill { height: 100%; transition: width 0.3s; }
+
+  .dist-bar { display: flex; height: 12px; overflow: hidden; }
+  .dist-segment { transition: width 0.3s; }
+  .dist-legend { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 16px; }
+  .legend-item { display: flex; align-items: center; gap: 8px; font-size: 11px; }
+  .legend-dot { width: 8px; height: 8px; }
+  .legend-pct { color: #1c1917; font-weight: 500; margin-left: auto; }
+
+  .contrib-row { display: flex; align-items: center; justify-content: space-between; font-size: 12px; padding: 6px 0; }
+  .contrib-name { color: #44403c; font-weight: 500; }
+  .contrib-bar-wrap { flex: 1; margin: 0 12px; height: 4px; background: #f5f5f4; position: relative; }
+  .contrib-bar-zero { position: absolute; top: 0; left: 50%; width: 1px; height: 100%; background: #a8a29e; }
+  .contrib-bar { position: absolute; top: 0; height: 100%; }
+  .contrib-bar.pos { left: 50%; background: #047857; }
+  .contrib-bar.neg { right: 50%; background: #be123c; }
+  .contrib-pct { font-weight: 500; font-variant-numeric: tabular-nums; min-width: 60px; text-align: right; }
+
+  .snapshot-action { background: white; border: 1px solid #d6d3d1; padding: 16px; margin-bottom: 16px; }
+  .snapshot-row, .tx-row { background: white; border: 1px solid #d6d3d1; padding: 12px 16px; margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between; }
+  .snapshot-info, .tx-info { flex: 1; }
+  .snapshot-info strong, .tx-info strong { font-size: 14px; color: #1c1917; display: block; margin-bottom: 2px; }
+  .snapshot-info p, .tx-info p { font-size: 11px; color: #78716c; }
+
+  .tx-tag { display: inline-block; padding: 2px 6px; font-size: 9px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.1em; margin-right: 6px; }
+  .tag-akbank { background: #b91c1c; color: white; }
+  .tag-midas { background: #7c3aed; color: white; }
+  .tag-gold { background: #c9a961; color: white; }
+  .tag-silver { background: #9aa0a6; color: white; }
+
+  .tx-amount-pos { color: #047857; font-weight: bold; }
+  .tx-amount-neg { color: #be123c; font-weight: bold; }
+
+  .chart-card { background: white; border: 1px solid #d6d3d1; padding: 16px; margin-bottom: 16px; position: relative; }
+  .chart-title { font-size: 11px; text-transform: uppercase; letter-spacing: 0.25em; color: #44403c; margin-bottom: 16px; }
+  .chart-svg { width: 100%; height: 240px; display: block; }
+  .chart-svg .chart-dot { cursor: pointer; transition: r 0.2s; }
+  .chart-svg .chart-dot:hover { r: 6; }
+  .chart-legend { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 12px; font-size: 11px; }
+  .chart-legend-item { display: flex; align-items: center; gap: 6px; }
+  .chart-legend-color { width: 12px; height: 3px; }
+  .chart-tooltip { background: #1c1917; color: #fafaf9; padding: 8px 12px; font-size: 11px; margin-bottom: 12px; border-radius: 4px; text-align: center; }
+  .chart-tooltip strong { color: #fafaf9; }
+
+  .chart-stats { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 16px; }
+  .stat-box { background: white; border: 1px solid #d6d3d1; padding: 10px; text-align: center; }
+  .stat-label { font-size: 9px; text-transform: uppercase; letter-spacing: 0.15em; color: #78716c; margin-bottom: 4px; }
+  .stat-value { font-size: 14px; font-weight: bold; color: #1c1917; }
+
+  .empty-state { text-align: center; padding: 48px 16px; color: #78716c; font-size: 13px; background: white; border: 1px solid #d6d3d1; }
+  .empty-state strong { display: block; font-size: 16px; color: #1c1917; margin-bottom: 8px; }
+
+  .footer { font-size: 9px; color: #a8a29e; text-align: center; margin-top: 24px; letter-spacing: 0.2em; text-transform: uppercase; }
+
+  .modal-overlay { position: fixed; inset: 0; background: rgba(28, 25, 23, 0.6); display: none; align-items: center; justify-content: center; z-index: 100; padding: 20px; }
+  .modal-overlay.active { display: flex; }
+  .modal { background: white; padding: 24px; max-width: 400px; width: 100%; max-height: 90vh; overflow-y: auto; }
+  /* ===== RESPONSIVE DESKTOP ===== */
+  @media (min-width: 768px) {
+    body { padding: 32px 32px 60px; max-width: 1100px; }
+    .tabs { max-width: 600px; }
+
+    /* Two column layout for current tab */
+    #tab-current .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+    #tab-current .full-col { grid-column: 1 / -1; }
+
+    .asset-card { padding: 20px; }
+    .asset-value { font-size: 22px; }
+    .total-value { font-size: 44px; }
+    .total-card { padding: 32px; }
+
+    .panel { margin-bottom: 32px; }
+    .chart-svg { height: 300px; }
+    .modal { max-width: 480px; }
+  }
+
+  @media (min-width: 1024px) {
+    body { max-width: 1200px; }
+    #tab-current .assets-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- LOGIN SCREEN -->
+<div id="login-screen" style="display:flex; position:fixed; inset:0; background:#fafaf9; align-items:center; justify-content:center; flex-direction:column; padding:32px; text-align:center; z-index:9999;">
+  <h1 style="font-size:32px; font-weight:bold; font-style:italic; color:#1c1917; margin-bottom:8px;">Invest Summary</h1>
+  <p style="font-size:13px; color:#78716c; margin-bottom:32px; letter-spacing:0.1em;">Personal Portfolio Tracker</p>
+  <div style="background:#1c1917; padding:32px; max-width:320px; width:100%;">
+    <p style="font-size:11px; text-transform:uppercase; letter-spacing:0.3em; color:#a8a29e; margin-bottom:24px;">Sign in to access your portfolio</p>
+    <button id="login-btn" style="background:#4285F4; border:none; color:white; padding:14px 24px; font-size:13px; cursor:pointer; font-family:inherit; font-weight:bold; width:100%; letter-spacing:0.1em;">
+      🔐 Sign in with Google
+    </button>
+  </div>
+</div>
+
+<!-- APP CONTENT -->
+<div id="app-content" style="display:none;">
+  <div class="header-row">
+    <span class="label-tiny">Portfolio</span>
+    <div style="text-align:right;">
+      <div class="date-tiny" id="today-date"></div>
+      <div class="date-tiny" id="today-time" style="margin-top:2px;"></div>
+    </div>
+  </div>
+  <h1>Invest Summary</h1>
+  <div id="rate-indicator" style="margin-top:8px;"><span style="font-size:10px; color:#a8a29e;">💱 Fetching live rate...</span></div>
+</div>
+
+<div class="tabs">
+  <button class="tab active" data-tab="current" onclick="switchTab('current')">Current</button>
+  <button class="tab" data-tab="movements" onclick="switchTab('movements')">Movements</button>
+  <button class="tab" data-tab="history" onclick="switchTab('history')">History</button>
+  <button class="tab" data-tab="charts" onclick="switchTab('charts')">Charts</button>
+  <button class="tab" data-tab="tools" onclick="switchTab('tools')">Tools 🛠</button>
+  <button class="tab" data-tab="ai" onclick="switchTab('ai')">AI 🤖</button>
+</div>
+
+<!-- CURRENT TAB -->
+<div id="tab-current" class="tab-content active">
+  <div class="total-card">
+    <p class="total-label">Total Value</p>
+    <p class="total-value" id="total-value">$0.00</p>
+    <div class="total-pnl-row">
+      <span id="total-arrow">▲</span>
+      <span id="total-pnl">+$0.00 (0.00%)</span>
+      <span class="total-cost" id="total-cost">Cost: $0.00</span>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-header">
+      <h3>Live Inputs</h3>
+      <div id="edit-controls">
+        <button class="btn-edit" onclick="enterEdit()">✎ Update</button>
+      </div>
+    </div>
+    <div id="inputs-list"></div>
+  </div>
+
+  <h3 class="section-title">Assets</h3>
+  <div id="assets-list" class="assets-grid"></div>
+
+  <div class="panel" style="padding: 16px;">
+    <h3 style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.25em; color: #44403c; font-weight: normal; margin-bottom: 16px;">Distribution</h3>
+    <div class="dist-bar" id="dist-bar"></div>
+    <div class="dist-legend" id="dist-legend"></div>
+  </div>
+
+  <div class="panel" style="padding: 16px; margin-top: 24px;">
+    <h3 style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.25em; color: #44403c; font-weight: normal; margin-bottom: 12px;">P/L Contribution</h3>
+    <div id="contrib-list"></div>
+  </div>
+
+  <h3 class="section-title" style="margin-top:24px;">MIDAS Breakdown 💜</h3>
+  
+  <div class="panel">
+    <div class="panel-header">
+      <h3>TL & USD Sections</h3>
+      <div id="midas-edit-controls">
+        <button class="btn-edit" onclick="enterMidasEdit()">✎ Update</button>
+      </div>
+    </div>
+    <div id="midas-inputs-list"></div>
+  </div>
+
+  <div id="midas-breakdown"></div>
+</div>
+
+<!-- MOVEMENTS TAB -->
+<div id="tab-movements" class="tab-content">
+  <div class="snapshot-action">
+    <h3 style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.25em; color: #44403c; margin-bottom: 8px;">Capital Movements</h3>
+    <p style="font-size: 12px; color: #57534e; margin-bottom: 12px;">سجل أي حركة: إيداع، سحب، شراء، بيع. التكلفة بتتحدث تلقائياً.</p>
+    <button class="btn-primary" onclick="openTxModal()">+ Add Transaction</button>
+  </div>
+
+  <div class="panel" style="margin-bottom:16px;">
+    <div class="panel-header">
+      <h3>Capital Summary</h3>
+    </div>
+    <div id="sum-akbank" class="input-row" style="display:flex; justify-content:space-between; padding:10px 16px; font-size:12px; border-bottom:1px solid #f5f5f4;">
+    </div>
+    <div id="sum-midas" class="input-row" style="display:flex; justify-content:space-between; padding:10px 16px; font-size:12px; border-bottom:1px solid #f5f5f4;">
+    </div>
+    <div id="sum-gold" class="input-row" style="display:flex; justify-content:space-between; padding:10px 16px; font-size:12px; border-bottom:1px solid #f5f5f4;">
+    </div>
+    <div id="sum-silver" class="input-row" style="display:flex; justify-content:space-between; padding:10px 16px; font-size:12px;">
+    </div>
+  </div>
+
+  <h3 class="section-title">Transaction History</h3>
+  <div id="tx-list"></div>
+</div>
+
+<!-- HISTORY TAB -->
+<div id="tab-history" class="tab-content">
+  <div class="snapshot-action">
+    <h3 style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.25em; color: #44403c; margin-bottom: 8px;">Save Snapshot</h3>
+    <p style="font-size: 12px; color: #57534e; margin-bottom: 12px;">احفظ القيم الحالية كنقطة في الزمن.</p>
+    <button class="btn-primary" onclick="saveSnapshot()">📸 Save Today's Snapshot</button>
+  </div>
+
+  <div class="snapshot-action">
+    <h3 style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.25em; color: #44403c; margin-bottom: 8px;">Backup &amp; Restore</h3>
+    <p style="font-size: 12px; color: #57534e; margin-bottom: 12px;">📥 Export = نزّل ملف فيه كل البيانات. 📤 Import = ارجاع البيانات من ملف.</p>
+    <div style="display:flex; gap:8px;">
+      <button class="btn-primary" style="flex:1;" onclick="exportData()">📥 Export</button>
+      <button class="btn-primary" style="flex:1; background:#44403c;" onclick="document.getElementById('import-file').click()">📤 Import</button>
+    </div>
+    <input type="file" id="import-file" accept=".json" style="display:none;" onchange="importData(event)" />
+  </div>
+
+  <h3 class="section-title">Saved Snapshots</h3>
+  <div id="snapshots-list"></div>
+</div>
+
+<!-- CHARTS TAB -->
+<div id="tab-charts" class="tab-content">
+  <div id="charts-content"></div>
+</div>
+
+<!-- TOOLS TAB -->
+<div id="tab-tools" class="tab-content">
+
+  <!-- 1. PRICE ALERTS -->
+  <div class="panel">
+    <div class="panel-header">
+      <h3>🔔 Price Alerts</h3>
+      <button class="btn-edit" onclick="checkAlerts()">↻ Check Now</button>
+    </div>
+    <div style="padding:16px;">
+      <p style="font-size:12px; color:#57534e; margin-bottom:12px;">حدد سعر هدف — التطبيق يخبرك لما يوصل.</p>
+      <div class="form-grid" style="margin-bottom:8px;">
+        <div class="form-group">
+          <label>Gold Target ($/g)</label>
+          <input type="number" id="alert-gold" step="0.01" inputmode="decimal" placeholder="e.g. 150" />
+        </div>
+        <div class="form-group">
+          <label>Silver Target ($/g)</label>
+          <input type="number" id="alert-silver" step="0.0001" inputmode="decimal" placeholder="e.g. 2.50" />
+        </div>
+        <div class="form-group">
+          <label>USD/TL Target (₺)</label>
+          <input type="number" id="alert-usdtl" step="0.001" inputmode="decimal" placeholder="e.g. 46" />
+        </div>
+        <div class="form-group">
+          <label>Total Value Target ($)</label>
+          <input type="number" id="alert-total" step="1" inputmode="decimal" placeholder="e.g. 5000" />
+        </div>
+      </div>
+      <button class="btn-primary" onclick="saveAlerts()">💾 Save Alerts</button>
+      <div id="alerts-status" style="margin-top:12px;"></div>
+    </div>
+  </div>
+
+  <!-- 2. DCA CALCULATOR -->
+  <div class="panel">
+    <div class="panel-header"><h3>📊 DCA Calculator</h3></div>
+    <div style="padding:16px;">
+      <p style="font-size:12px; color:#57534e; margin-bottom:12px;">شو يصير لمحفظتك لو ضفت مبلغ شهري ثابت؟</p>
+      <div class="form-grid" style="margin-bottom:8px;">
+        <div class="form-group">
+          <label>Monthly Addition ($)</label>
+          <input type="number" id="dca-monthly" step="10" inputmode="decimal" placeholder="e.g. 150" value="150" />
+        </div>
+        <div class="form-group">
+          <label>Months</label>
+          <input type="number" id="dca-months" step="1" inputmode="decimal" placeholder="e.g. 12" value="12" />
+        </div>
+        <div class="form-group">
+          <label>Expected Annual Return (%)</label>
+          <input type="number" id="dca-return" step="0.1" inputmode="decimal" placeholder="e.g. 8" value="8" />
+        </div>
+        <div class="form-group">
+          <label>Add to Asset</label>
+          <select id="dca-asset">
+            <option value="total">Total Portfolio</option>
+            <option value="MIDAS">MIDAS</option>
+            <option value="GOLD">GOLD</option>
+            <option value="SILVER">SILVER</option>
+          </select>
+        </div>
+      </div>
+      <button class="btn-primary" onclick="calcDCA()">📊 Calculate</button>
+      <div id="dca-result" style="margin-top:16px;"></div>
+    </div>
+  </div>
+
+  <!-- 3. REBALANCING -->
+  <div class="panel">
+    <div class="panel-header"><h3>⚖️ Rebalancing Alert</h3></div>
+    <div style="padding:16px;">
+      <p style="font-size:12px; color:#57534e; margin-bottom:12px;">حدد التوزيع المثالي — يخبرك لما انحرف كثير.</p>
+      <div id="rebalance-inputs"></div>
+      <p style="font-size:10px; color:#a8a29e; margin-bottom:12px;">المجموع لازم يساوي 100%</p>
+      <button class="btn-primary" onclick="calcRebalance()">⚖️ Check Balance</button>
+      <div id="rebalance-result" style="margin-top:16px;"></div>
+    </div>
+  </div>
+
+</div>
+
+<!-- AI TAB -->
+<div id="tab-ai" class="tab-content">
+  <div class="snapshot-action">
+    <h3 style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.25em; color: #44403c; margin-bottom: 8px;">🤖 AI Portfolio Analysis</h3>
+    <p style="font-size: 12px; color: #57534e; margin-bottom: 12px;">اضغط Copy، روح على Claude.ai، الصق — وأنا أحلل محفظتك فوراً.</p>
+    <button class="btn-primary" onclick="copyAnalysisPrompt()">📋 Copy Analysis Prompt</button>
+  </div>
+  <div id="ai-output"></div>
+</div>
+
+<p class="footer">tax 0.2% included on metals · costs from your transactions</p>
+
+</div><!-- end app-content -->
+
+<!-- TRANSACTION MODAL -->
+<div class="modal-overlay" id="tx-modal">
+  <div class="modal">
+    <h3 id="tx-modal-title">Add Transaction</h3>
+
+    <div class="form-group">
+      <label>Asset</label>
+      <select id="tx-asset" onchange="updateTxForm()">
+        <option value="AKBANK">AKBANK (₺)</option>
+        <option value="MIDAS_USD">MIDAS - USD ETFs ($)</option>
+        <option value="MIDAS_TL">MIDAS - Turkish Stocks (₺)</option>
+        <option value="GOLD">GOLD (gram)</option>
+        <option value="SILVER">SILVER (gram)</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label>Type</label>
+      <select id="tx-type">
+        <option value="deposit">Deposit / Buy</option>
+        <option value="withdraw">Withdraw / Sell</option>
+      </select>
+    </div>
+
+    <div class="form-grid">
+      <div class="form-group" id="tx-amount-group">
+        <label id="tx-amount-label">Amount</label>
+        <input type="number" id="tx-amount" step="0.01" inputmode="decimal" />
+      </div>
+      <div class="form-group" id="tx-price-group" style="display:none;">
+        <label>Price/gram ($)</label>
+        <input type="number" id="tx-price" step="0.0001" inputmode="decimal" />
+      </div>
+      <div class="form-group" id="tx-usd-equiv-group" style="display:none;">
+        <label>USD Equivalent ($)</label>
+        <input type="number" id="tx-usd-equiv" step="0.01" inputmode="decimal" placeholder="e.g. 22.47" />
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>Date</label>
+      <input type="date" id="tx-date" />
+    </div>
+
+    <div class="form-group">
+      <label>Note (optional)</label>
+      <input type="text" id="tx-note" placeholder="e.g., Salary deposit" />
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn-secondary" onclick="closeTxModal()">Cancel</button>
+      <button id="save-tx-btn" class="btn-secondary" style="background:#1c1917; color:white;" onclick="addTransaction()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- CONFIRM MODAL -->
+<div class="modal-overlay" id="confirm-modal">
+  <div class="modal">
+    <h3 id="modal-title">Confirm</h3>
+    <p id="modal-text"></p>
+    <div class="modal-actions">
+      <button class="btn-secondary" onclick="closeModal()">Cancel</button>
+      <button class="btn-secondary" style="background:#be123c; color:white; border-color:#be123c;" onclick="confirmAction()">Delete</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  // ============ INITIAL TRANSACTIONS FROM EXCEL ============
+  const INITIAL_TRANSACTIONS = []; // Data comes from Firestore
+
+  const DEFAULT_INPUTS = {
+    usdTl: 45.026,
+    goldPrice: 145.77,
+    silverPrice: 2.3524,
+    akbankTl: 0,
+    midasUsd: 0,
+    midasTlCurrent: 0,
+    midasUsdCapital: 0,
+    midasUsdCurrent: 0
+  };
+
+  let inputs = { ...DEFAULT_INPUTS };
+  let editing = false;
+  let midasEditing = false;
+  let tempInputs = { ...inputs };
+  let snapshots = [];
+  let transactions = [];
+  let pendingDeleteId = null;
+  let pendingDeleteType = null;
+
+  // Don't load from localStorage at startup — wait for Firebase auth
+  // Data is stored per userId so different users see different data
+
+  // ============ DERIVE COSTS FROM TRANSACTIONS ============
+  function deriveCosts() {
+    let akbankCost = 0;
+    let midasCost = 0;
+    let midasTlCost = 0;       // USD value of TL deposits
+    let midasTlCostInTl = 0;   // Original TL amount
+    let midasUsdCost = 0;      // USD-only deposits
+    let goldGrams = 0;
+    let goldCost = 0;
+    let silverGrams = 0;
+    let silverCost = 0;
+
+    transactions.forEach(t => {
+      const sign = t.type === "deposit" ? 1 : -1;
+      if (t.asset === "AKBANK") akbankCost += sign * t.amount;
+      if (t.asset === "MIDAS") {
+        midasCost += sign * t.amount;
+        if (t.subtype === "TL") {
+          midasTlCost += sign * t.amount;
+          midasTlCostInTl += sign * (t.amountTl || 0);
+        } else {
+          // Default to USD if no subtype (legacy or USD)
+          midasUsdCost += sign * t.amount;
+        }
+      }
+      if (t.asset === "GOLD") {
+        goldGrams += sign * t.amount;
+        goldCost  += sign * t.amount * (t.price || 0);
+      }
+      if (t.asset === "SILVER") {
+        silverGrams += sign * t.amount;
+        silverCost  += sign * t.amount * (t.price || 0);
+      }
+    });
+
+    return { akbankCost, midasCost, midasTlCost, midasTlCostInTl, midasUsdCost, goldGrams, goldCost, silverGrams, silverCost };
+  }
+
+  // ============ CALCULATIONS ============
+  function calculate() {
+    const c = deriveCosts();
+
+    const akbankUsd = inputs.akbankTl / inputs.usdTl;
+    const akbankPnl = akbankUsd - c.akbankCost;
+    const akbankPnlPct = c.akbankCost ? (akbankPnl / c.akbankCost) * 100 : 0;
+
+    const midasPnl = inputs.midasUsd - c.midasCost;
+    const midasPnlPct = c.midasCost ? (midasPnl / c.midasCost) * 100 : 0;
+
+    const goldValue = c.goldGrams * inputs.goldPrice * 0.998;
+    const goldPnl = goldValue - c.goldCost;
+    const goldPnlPct = c.goldCost ? (goldPnl / c.goldCost) * 100 : 0;
+
+    const silverValue = c.silverGrams * inputs.silverPrice * 0.998;
+    const silverPnl = silverValue - c.silverCost;
+    const silverPnlPct = c.silverCost ? (silverPnl / c.silverCost) * 100 : 0;
+
+    const totalCost = c.akbankCost + c.midasCost + c.goldCost + c.silverCost;
+    const totalValue = akbankUsd + inputs.midasUsd + goldValue + silverValue;
+    const totalPnl = totalValue - totalCost;
+    const totalPnlPct = totalCost ? (totalPnl / totalCost) * 100 : 0;
+
+    return {
+      assets: [
+        { name: "AKBANK", value: akbankUsd, cost: c.akbankCost, pnl: akbankPnl, pnlPct: akbankPnlPct, color: "#b91c1c" },
+        { name: "MIDAS",  value: inputs.midasUsd, cost: c.midasCost, pnl: midasPnl, pnlPct: midasPnlPct, color: "#7c3aed" },
+        { name: "GOLD",   value: goldValue, cost: c.goldCost, pnl: goldPnl, pnlPct: goldPnlPct, color: "#c9a961", grams: c.goldGrams },
+        { name: "SILVER", value: silverValue, cost: c.silverCost, pnl: silverPnl, pnlPct: silverPnlPct, color: "#9aa0a6", grams: c.silverGrams }
+      ],
+      totalValue, totalCost, totalPnl, totalPnlPct, costs: c
+    };
+  }
+
+  // ============ RENDER CURRENT ============
+  function getActiveTab() {
+    return document.querySelector(".tab.active")?.getAttribute("data-tab") || "current";
+  }
+
+  function renderKeepTab() {
+    const tab = getActiveTab();
+    render();
+    if (tab === "movements") renderTransactions();
+    if (tab === "history") renderHistory();
+    if (tab === "charts") renderCharts();
+  }
+
+  function render() {
+    const data = calculate();
+
+    document.getElementById("today-date").textContent = new Date().toLocaleDateString("en-GB");
+    const timeEl = document.getElementById("today-time");
+    if (timeEl) timeEl.textContent = new Date().toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
+    document.getElementById("total-value").textContent = "$" + data.totalValue.toFixed(4);
+    document.getElementById("total-cost").textContent = "Cost: $" + data.totalCost.toFixed(4);
+
+    const pnlEl = document.getElementById("total-pnl");
+    const arrowEl = document.getElementById("total-arrow");
+    const sign = data.totalPnl >= 0 ? "+" : "";
+    pnlEl.textContent = sign + "$" + data.totalPnl.toFixed(4) + " (" + data.totalPnlPct.toFixed(4) + "%)";
+    pnlEl.className = data.totalPnl >= 0 ? "pnl-positive" : "pnl-negative";
+    arrowEl.textContent = data.totalPnl >= 0 ? "▲" : "▼";
+    arrowEl.className = data.totalPnl >= 0 ? "pnl-positive" : "pnl-negative";
+
+    renderInputs();
+
+    document.getElementById("assets-list").innerHTML = data.assets.map(a => {
+      const weight = (a.value / data.totalValue) * 100;
+      const sn = a.pnl >= 0 ? "+" : "";
+      const gramInfo = a.grams !== undefined ? ` · ${a.grams.toFixed(2)}g` : "";
+      return `
+        <div class="asset-card">
+          <div class="asset-row">
+            <div class="asset-left">
+              <div class="asset-color-bar" style="background:${a.color}"></div>
+              <div>
+                <p class="asset-name">${a.name}</p>
+                <p class="asset-weight">${weight.toFixed(1)}% of portfolio${gramInfo}</p>
+              </div>
+            </div>
+            <div class="asset-right">
+              <p class="asset-value">$${a.value.toFixed(4)}</p>
+              <p class="asset-pnl ${a.pnl >= 0 ? 'pos' : 'neg'}">${sn}$${a.pnl.toFixed(4)} (${a.pnlPct.toFixed(4)}%)</p>
+            </div>
+          </div>
+          <div class="weight-bar"><div class="weight-fill" style="width:${weight}%; background:${a.color}"></div></div>
+        </div>
+      `;
+    }).join("");
+
+    document.getElementById("dist-bar").innerHTML = data.assets.map(a =>
+      `<div class="dist-segment" style="width:${(a.value / data.totalValue) * 100}%; background:${a.color}"></div>`
+    ).join("");
+
+    document.getElementById("dist-legend").innerHTML = data.assets.map(a => `
+      <div class="legend-item">
+        <div class="legend-dot" style="background:${a.color}"></div>
+        <span style="color:#57534e">${a.name}</span>
+        <span class="legend-pct">${((a.value / data.totalValue) * 100).toFixed(1)}%</span>
+      </div>
+    `).join("");
+
+    document.getElementById("contrib-list").innerHTML = data.assets.map(a => {
+      const contrib = (a.pnl / data.totalCost) * 100;
+      const sn = a.pnl >= 0 ? "+" : "";
+      const barWidth = Math.min(Math.abs(contrib) * 5, 50);
+      return `
+        <div class="contrib-row">
+          <span class="contrib-name">${a.name}</span>
+          <div class="contrib-bar-wrap">
+            <div class="contrib-bar-zero"></div>
+            <div class="contrib-bar ${contrib >= 0 ? 'pos' : 'neg'}" style="width:${barWidth}%"></div>
+          </div>
+          <span class="contrib-pct" style="${a.pnl >= 0 ? 'color:#047857' : 'color:#be123c'}">${sn}${contrib.toFixed(4)}%</span>
+        </div>
+      `;
+    }).join("");
+
+    // Update movements summary
+    const colors = { AKBANK: "#b91c1c", MIDAS: "#7c3aed", GOLD: "#c9a961", SILVER: "#9aa0a6" };
+    document.getElementById("sum-akbank").innerHTML = `<span style="color:#57534e; display:flex; align-items:center; gap:6px;"><div style="width:6px;height:6px;background:${colors.AKBANK};"></div>AKBANK Cost</span><span style="font-weight:500;">$${data.costs.akbankCost.toFixed(4)}</span>`;
+    document.getElementById("sum-midas").innerHTML = `<span style="color:#57534e; display:flex; align-items:center; gap:6px;"><div style="width:6px;height:6px;background:${colors.MIDAS};"></div>MIDAS Cost</span><span style="font-weight:500;">$${data.costs.midasCost.toFixed(4)}</span>`;
+    document.getElementById("sum-gold").innerHTML = `<span style="color:#57534e; display:flex; align-items:center; gap:6px;"><div style="width:6px;height:6px;background:${colors.GOLD};"></div>GOLD ${data.costs.goldGrams.toFixed(2)}g</span><span style="font-weight:500;">$${data.costs.goldCost.toFixed(4)}</span>`;
+    document.getElementById("sum-silver").innerHTML = `<span style="color:#57534e; display:flex; align-items:center; gap:6px;"><div style="width:6px;height:6px;background:${colors.SILVER};"></div>SILVER ${data.costs.silverGrams.toFixed(2)}g</span><span style="font-weight:500;">$${data.costs.silverCost.toFixed(4)}</span>`;
+
+    renderMidasBreakdown();
+  }
+
+  function renderMidasBreakdown() {
+    // Render the inputs section first
+    renderMidasInputs();
+
+    // Get costs from transactions
+    const data = calculate();
+    const tlCapUsd = data.costs.midasTlCost;        // USD value of TL deposits (from movements)
+    const tlCapTl = data.costs.midasTlCostInTl;     // Original TL amount
+    const usdCap = data.costs.midasUsdCost;          // USD-only deposits
+
+    // Current values (still from inputs since these change daily)
+    const tlCurTl = inputs.midasTlCurrent;
+    const tlCurUsd = tlCurTl / inputs.usdTl;
+    const tlPnlUsd = tlCurUsd - tlCapUsd;
+    const tlPnlPctUsd = tlCapUsd ? (tlPnlUsd / tlCapUsd) * 100 : 0;
+
+    // TL-only perspective: compare current TL to TL capital
+    const tlPnlTl = tlCurTl - tlCapTl;
+    const tlPnlPctTlOnly = tlCapTl ? (tlPnlTl / tlCapTl) * 100 : 0;
+
+    // USD section
+    const usdCur = inputs.midasUsdCurrent;
+    const usdPnl = usdCur - usdCap;
+    const usdPnlPct = usdCap ? (usdPnl / usdCap) * 100 : 0;
+
+    // Average exchange rate at time of purchase
+    const avgRate = tlCapUsd ? (tlCapTl / tlCapUsd) : 0;
+
+    // Comparison (USD basis)
+    const winner = tlPnlPctUsd > usdPnlPct ? "TL" : "USD";
+    const diff = Math.abs(tlPnlPctUsd - usdPnlPct);
+
+    const html = `
+      <div class="asset-card" style="border-left:4px solid #b91c1c;">
+        <div class="asset-row">
+          <div class="asset-left">
+            <div class="asset-color-bar" style="background:#b91c1c"></div>
+            <div>
+              <p class="asset-name">🇹🇷 MIDAS-TL</p>
+              <p class="asset-weight">Turkish stocks &amp; funds (USD basis)</p>
+            </div>
+          </div>
+          <div class="asset-right">
+            <p class="asset-value">$${tlCurUsd.toFixed(4)}</p>
+            <p class="asset-pnl ${tlPnlUsd >= 0 ? 'pos' : 'neg'}">${tlPnlUsd >= 0 ? '+' : ''}$${tlPnlUsd.toFixed(4)} (${tlPnlPctUsd.toFixed(4)}%)</p>
+          </div>
+        </div>
+        <div style="margin-top:12px; padding-top:12px; border-top:1px solid #f5f5f4; font-size:11px;">
+          <div style="display:flex; justify-content:space-between; padding:4px 0;">
+            <span style="color:#57534e;">Capital (₺)</span>
+            <span><strong>₺${tlCapTl.toFixed(2)}</strong></span>
+          </div>
+          <div style="display:flex; justify-content:space-between; padding:4px 0;">
+            <span style="color:#57534e;">Capital ($)</span>
+            <span><strong>$${tlCapUsd.toFixed(4)}</strong></span>
+          </div>
+          <div style="display:flex; justify-content:space-between; padding:4px 0;">
+            <span style="color:#57534e;">Avg Rate at Purchase</span>
+            <span style="color:#78716c;">₺${avgRate.toFixed(4)}/$</span>
+          </div>
+          <div style="display:flex; justify-content:space-between; padding:4px 0;">
+            <span style="color:#57534e;">Current Value</span>
+            <span>₺${tlCurTl.toFixed(2)} → <strong>$${tlCurUsd.toFixed(4)}</strong></span>
+          </div>
+          <div style="display:flex; justify-content:space-between; padding:4px 0;">
+            <span style="color:#57534e;">P/L (TL only)</span>
+            <span style="${tlPnlTl >= 0 ? 'color:#047857' : 'color:#be123c'};">${tlPnlTl >= 0 ? '+' : ''}₺${tlPnlTl.toFixed(2)} (${tlPnlPctTlOnly.toFixed(4)}%)</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="asset-card" style="border-left:4px solid #1d4ed8;">
+        <div class="asset-row">
+          <div class="asset-left">
+            <div class="asset-color-bar" style="background:#1d4ed8"></div>
+            <div>
+              <p class="asset-name">🇺🇸 MIDAS-USD</p>
+              <p class="asset-weight">Global ETFs</p>
+            </div>
+          </div>
+          <div class="asset-right">
+            <p class="asset-value">$${usdCur.toFixed(4)}</p>
+            <p class="asset-pnl ${usdPnl >= 0 ? 'pos' : 'neg'}">${usdPnl >= 0 ? '+' : ''}$${usdPnl.toFixed(4)} (${usdPnlPct.toFixed(4)}%)</p>
+          </div>
+        </div>
+        <div style="margin-top:12px; padding-top:12px; border-top:1px solid #f5f5f4; font-size:11px;">
+          <div style="display:flex; justify-content:space-between; padding:4px 0;">
+            <span style="color:#57534e;">Capital</span>
+            <span>$${usdCap.toFixed(4)}</span>
+          </div>
+          <div style="display:flex; justify-content:space-between; padding:4px 0;">
+            <span style="color:#57534e;">Current Value</span>
+            <span>$${usdCur.toFixed(4)}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel" style="padding:14px;">
+        <h3 style="font-size:11px; text-transform:uppercase; letter-spacing:0.25em; color:#44403c; font-weight:normal; margin-bottom:12px;">⚔️ TL vs USD Comparison (USD basis)</h3>
+        <div style="display:flex; align-items:center; justify-content:space-between; padding:8px 0;">
+          <div style="text-align:center; flex:1;">
+            <p style="font-size:10px; color:#78716c; text-transform:uppercase; letter-spacing:0.15em;">🇹🇷 TL</p>
+            <p style="font-size:18px; font-weight:bold; ${tlPnlPctUsd >= 0 ? 'color:#047857' : 'color:#be123c'};">
+              ${tlPnlPctUsd >= 0 ? '+' : ''}${tlPnlPctUsd.toFixed(4)}%
+            </p>
+          </div>
+          <div style="font-size:18px; color:#a8a29e;">vs</div>
+          <div style="text-align:center; flex:1;">
+            <p style="font-size:10px; color:#78716c; text-transform:uppercase; letter-spacing:0.15em;">🇺🇸 USD</p>
+            <p style="font-size:18px; font-weight:bold; ${usdPnlPct >= 0 ? 'color:#047857' : 'color:#be123c'};">
+              ${usdPnlPct >= 0 ? '+' : ''}${usdPnlPct.toFixed(4)}%
+            </p>
+          </div>
+        </div>
+        <div style="margin-top:10px; padding-top:10px; border-top:1px solid #f5f5f4; text-align:center;">
+          <p style="font-size:11px; color:#44403c;">
+            <strong style="color:${winner === 'TL' ? '#b91c1c' : '#1d4ed8'};">${winner === 'TL' ? '🇹🇷 TL' : '🇺🇸 USD'}</strong> winning by <strong>${diff.toFixed(4)}%</strong>
+          </p>
+        </div>
+      </div>
+    `;
+
+    document.getElementById("midas-breakdown").innerHTML = html;
+  }
+
+  function renderInputs() {
+    const fields = [
+      { key: "goldPrice", label: "Gold $/gram", symbol: "$", step: "0.01" },
+      { key: "silverPrice", label: "Silver $/gram", symbol: "$", step: "0.0001" },
+      { key: "akbankTl", label: "AKBANK Total (₺)", symbol: "₺", step: "0.01" },
+      { key: "midasUsd", label: "MIDAS Total ($)", symbol: "$", step: "0.01" }
+    ];
+
+    document.getElementById("inputs-list").innerHTML = fields.map(f => {
+      if (editing) {
+        return `
+          <div class="input-row">
+            <span class="input-label">${f.label}</span>
+            <div class="input-edit-wrap">
+              <span class="input-symbol">${f.symbol}</span>
+              <input type="number" inputmode="decimal" step="${f.step}" value="${tempInputs[f.key]}"
+                onchange="tempInputs['${f.key}'] = parseFloat(this.value) || 0"
+                class="input-field" />
+            </div>
+          </div>
+        `;
+      } else {
+        return `
+          <div class="input-row">
+            <span class="input-label">${f.label}</span>
+            <span class="input-value">${f.symbol}${inputs[f.key].toLocaleString(undefined, { maximumFractionDigits: 4 })}</span>
+          </div>
+        `;
+      }
+    }).join("");
+
+    const ctrls = document.getElementById("edit-controls");
+    if (editing) {
+      ctrls.innerHTML = `<button class="btn-icon btn-save" onclick="saveEdit()">✓ Save</button> <button class="btn-icon btn-cancel" onclick="cancelEdit()">✕</button>`;
+    } else {
+      ctrls.innerHTML = `<button class="btn-edit" onclick="enterEdit()">✎ Update</button>`;
+    }
+  }
+
+  function enterEdit() { tempInputs = { ...inputs }; editing = true; render(); }
+  function saveEdit() { inputs = { ...tempInputs }; editing = false; try { saveData("portfolio_inputs", inputs); } catch (e) {} render(); }
+  function cancelEdit() { editing = false; render(); }
+
+  function enterMidasEdit() { tempInputs = { ...inputs }; midasEditing = true; render(); }
+  function saveMidasEdit() { inputs = { ...tempInputs }; midasEditing = false; try { saveData("portfolio_inputs", inputs); } catch (e) {} render(); }
+  function cancelMidasEdit() { midasEditing = false; render(); }
+
+  function renderMidasInputs() {
+    const fields = [
+      { key: "midasTlCurrent", label: "MIDAS-TL Current (₺)", symbol: "₺", step: "0.01" },
+      { key: "midasUsdCurrent", label: "MIDAS-USD Current ($)", symbol: "$", step: "0.01" }
+    ];
+
+    document.getElementById("midas-inputs-list").innerHTML = fields.map(f => {
+      if (midasEditing) {
+        return `
+          <div class="input-row">
+            <span class="input-label">${f.label}</span>
+            <div class="input-edit-wrap">
+              <span class="input-symbol">${f.symbol}</span>
+              <input type="number" inputmode="decimal" step="${f.step}" value="${tempInputs[f.key]}"
+                onchange="tempInputs['${f.key}'] = parseFloat(this.value) || 0"
+                class="input-field" />
+            </div>
+          </div>
+        `;
+      } else {
+        return `
+          <div class="input-row">
+            <span class="input-label">${f.label}</span>
+            <span class="input-value">${f.symbol}${(inputs[f.key] || 0).toLocaleString(undefined, { maximumFractionDigits: 4 })}</span>
+          </div>
+        `;
+      }
+    }).join("");
+
+    const ctrls = document.getElementById("midas-edit-controls");
+    if (midasEditing) {
+      ctrls.innerHTML = `<button class="btn-icon btn-save" onclick="saveMidasEdit()">✓ Save</button> <button class="btn-icon btn-cancel" onclick="cancelMidasEdit()">✕</button>`;
+    } else {
+      ctrls.innerHTML = `<button class="btn-edit" onclick="enterMidasEdit()">✎ Update</button>`;
+    }
+  }
+
+  // ============ TRANSACTIONS ============
+  function resetTransactions() {
+    if (!confirm("⚠️ هاد رح يمسح كل الحركات الحالية ويرجع للافتراضية. متأكد؟")) return;
+    transactions = [...INITIAL_TRANSACTIONS];
+    try { saveData("portfolio_transactions", transactions); } catch (e) {}
+    renderTransactions();
+    render();
+    alert("✓ تم إعادة ضبط الحركات!");
+  }
+
+  let editingTxId = null;
+
+  function editTx(id) {
+    const tx = transactions.find(t => t.id === id);
+    if (!tx) return;
+    editingTxId = id;
+
+    document.getElementById("tx-modal-title").textContent = "Edit Transaction";
+
+    // Set asset selector
+    let assetVal = tx.asset;
+    if (tx.asset === "MIDAS") assetVal = tx.subtype === "TL" ? "MIDAS_TL" : "MIDAS_USD";
+    document.getElementById("tx-asset").value = assetVal;
+    document.getElementById("tx-type").value = tx.type;
+
+    // Set amounts
+    if (tx.asset === "MIDAS" && tx.subtype === "TL") {
+      document.getElementById("tx-amount").value = tx.amountTl || "";
+      document.getElementById("tx-usd-equiv").value = tx.amount || "";
+    } else if (tx.asset === "AKBANK") {
+      document.getElementById("tx-amount").value = tx.amountTl || (tx.amount * inputs.usdTl).toFixed(2);
+    } else if (tx.asset === "GOLD" || tx.asset === "SILVER") {
+      document.getElementById("tx-amount").value = tx.amount;
+      document.getElementById("tx-price").value = tx.price || "";
+    } else {
+      document.getElementById("tx-amount").value = tx.amount;
+    }
+
+    document.getElementById("tx-date").value = tx.date;
+    document.getElementById("tx-note").value = tx.note || "";
+
+    updateTxForm();
+    document.getElementById("tx-modal").classList.add("active");
+  }
+
+  function openTxModal() {
+    editingTxId = null;
+    document.getElementById("tx-modal-title").textContent = "Add Transaction";
+    document.getElementById("save-tx-btn").textContent = "Save";
+    document.getElementById("tx-asset").value = "AKBANK";
+    document.getElementById("tx-type").value = "deposit";
+    document.getElementById("tx-amount").value = "";
+    document.getElementById("tx-price").value = "";
+    document.getElementById("tx-date").value = new Date().toISOString().slice(0, 10);
+    document.getElementById("tx-note").value = "";
+    updateTxForm();
+    document.getElementById("tx-modal").classList.add("active");
+  }
+
+  function closeTxModal() {
+    document.getElementById("tx-modal").classList.remove("active");
+  }
+
+  function updateTxForm() {
+    const asset = document.getElementById("tx-asset").value;
+    const isMetal = asset === "GOLD" || asset === "SILVER";
+    const isMidasTl = asset === "MIDAS_TL";
+
+    document.getElementById("tx-price-group").style.display = isMetal ? "block" : "none";
+    document.getElementById("tx-usd-equiv-group").style.display = isMidasTl ? "block" : "none";
+
+    const lbl = document.getElementById("tx-amount-label");
+    if (asset === "AKBANK") lbl.textContent = "Amount (₺)";
+    else if (asset === "MIDAS_USD") lbl.textContent = "Amount ($)";
+    else if (asset === "MIDAS_TL") lbl.textContent = "Amount (₺)";
+    else lbl.textContent = "Grams";
+  }
+
+  function addTransaction() {
+    const asset = document.getElementById("tx-asset").value;
+    const type = document.getElementById("tx-type").value;
+    const amount = parseFloat(document.getElementById("tx-amount").value);
+    const price = parseFloat(document.getElementById("tx-price").value);
+    const usdEquiv = parseFloat(document.getElementById("tx-usd-equiv").value);
+    const date = document.getElementById("tx-date").value;
+    const note = document.getElementById("tx-note").value;
+
+    if (!amount || amount <= 0) { alert("ادخل قيمة صحيحة"); return; }
+    if ((asset === "GOLD" || asset === "SILVER") && (!price || price <= 0)) { alert("ادخل سعر الغرام"); return; }
+    if (asset === "MIDAS_TL" && (!usdEquiv || usdEquiv <= 0)) { alert("ادخل القيمة بالدولار وقت الإيداع"); return; }
+    if (!date) { alert("اختر التاريخ"); return; }
+
+    const tx = {
+      id: Date.now(),
+      date,
+      type,
+      note
+    };
+
+    if (asset === "AKBANK") {
+      tx.asset = "AKBANK";
+      tx.amount = amount / inputs.usdTl;
+      tx.amountTl = amount;
+    } else if (asset === "MIDAS_USD") {
+      tx.asset = "MIDAS";
+      tx.subtype = "USD";
+      tx.amount = amount;
+    } else if (asset === "MIDAS_TL") {
+      tx.asset = "MIDAS";
+      tx.subtype = "TL";
+      tx.amount = usdEquiv;        // USD value used for cost basis
+      tx.amountTl = amount;        // TL amount for record/display
+    } else if (asset === "GOLD" || asset === "SILVER") {
+      tx.asset = asset;
+      tx.amount = amount;
+      tx.price = price;
+    }
+
+    // If editing, remove old transaction first
+    if (editingTxId !== null) {
+      transactions = transactions.filter(t => t.id !== editingTxId);
+      editingTxId = null;
+    }
+
+    transactions.push(tx);
+    transactions.sort((a, b) => new Date(a.date) - new Date(b.date));
+    try { saveData("portfolio_transactions", transactions); } catch (e) {}
+
+    closeTxModal();
+    renderTransactions();
+    render();
+  }
+
+  function deleteTx(id) {
+    pendingDeleteId = id;
+    pendingDeleteType = "tx";
+    document.getElementById("modal-title").textContent = "Delete Transaction?";
+    document.getElementById("modal-text").textContent = "هاي الحركة رح تنحذف وتأثر على حساب التكلفة.";
+    document.getElementById("confirm-modal").classList.add("active");
+  }
+
+  function renderTransactions() {
+    const container = document.getElementById("tx-list");
+    if (transactions.length === 0) {
+      container.innerHTML = `<div class="empty-state"><strong>No transactions</strong>اضغط Add Transaction لتسجيل أول حركة</div>`;
+      return;
+    }
+
+    const reversed = [...transactions].reverse();
+    container.innerHTML = reversed.map(t => {
+      const tagClass = `tag-${t.asset.toLowerCase()}`;
+      const sign = t.type === "deposit" ? "+" : "-";
+      const amountClass = t.type === "deposit" ? "tx-amount-pos" : "tx-amount-neg";
+
+      let display = "";
+      let assetLabel = t.asset;
+      if (t.asset === "AKBANK") {
+        const tlAmount = t.amountTl !== undefined ? t.amountTl : (t.amount * inputs.usdTl);
+        display = `${sign}₺${tlAmount.toFixed(4)} <span style="color:#78716c; font-size:10px;">(~$${t.amount.toFixed(4)})</span>`;
+      } else if (t.asset === "MIDAS") {
+        if (t.subtype === "TL") {
+          assetLabel = "MIDAS-TL";
+          display = `${sign}₺${(t.amountTl || 0).toFixed(2)} <span style="color:#78716c; font-size:10px;">($${t.amount.toFixed(4)})</span>`;
+        } else {
+          assetLabel = "MIDAS-USD";
+          display = `${sign}$${t.amount.toFixed(4)}`;
+        }
+      } else {
+        display = `${sign}${t.amount.toFixed(4)}g <span style="color:#78716c; font-size:10px;">@$${t.price.toFixed(4)} = $${(t.amount * t.price).toFixed(4)}</span>`;
+      }
+
+      return `
+        <div class="tx-row">
+          <div class="tx-info">
+            <strong><span class="tx-tag ${tagClass}">${assetLabel}</span> <span class="${amountClass}">${display}</span></strong>
+            <p>${formatDate(t.date)}${t.note ? ' · ' + t.note : ''}</p>
+          </div>
+          <div style="display:flex; gap:8px;">
+            <button class="btn-edit" onclick="editTx(${t.id})" style="font-size:13px;">✎</button>
+            <button class="btn-danger-link" onclick="deleteTx(${t.id})">🗑</button>
+          </div>
+        </div>
+      `;
+    }).join("");
+  }
+
+  // ============ EXPORT / IMPORT ============
+  function exportData() {
+    const data = {
+      version: 1,
+      exportDate: new Date().toISOString(),
+      inputs: inputs,
+      transactions: transactions,
+      snapshots: snapshots
+    };
+    const json = JSON.stringify(data, null, 2);
+    const blob = new Blob([json], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    const now = new Date();
+    const dateStr = now.toISOString().slice(0, 10);
+    const timeStr = now.toTimeString().slice(0, 5).replace(":", "-");
+    a.download = `portfolio-backup-${dateStr}_${timeStr}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    alert("✓ Backup downloaded! احفظه بـ Google Drive أو إيميل");
+  }
+
+  function importData(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    if (!confirm("⚠️ هاد رح يستبدل كل البيانات الحالية. تأكد إنك حفظت Export قبل! متأكد؟")) {
+      event.target.value = "";
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      try {
+        const data = JSON.parse(e.target.result);
+        if (!data.inputs || !data.transactions || !data.snapshots) {
+          alert("❌ ملف غير صحيح");
+          return;
+        }
+        inputs = { ...DEFAULT_INPUTS, ...data.inputs };
+        tempInputs = { ...inputs };
+        transactions = data.transactions;
+        snapshots = data.snapshots;
+        try {
+          saveData("portfolio_inputs", inputs);
+          saveData("portfolio_transactions", transactions);
+          saveData("portfolio_snapshots", snapshots);
+        } catch (err) {}
+
+        // Sync to Firebase via event
+        window.dispatchEvent(new CustomEvent("fb-import", {
+          detail: { inputs, transactions, snapshots }
+        }));
+
+        render();
+        renderTransactions();
+        renderHistory();
+        renderCharts();
+        alert("✓ تم استرجاع البيانات بنجاح! ☁️ جاري الرفع للـ Cloud...");
+      } catch (err) {
+        alert("❌ خطأ بقراءة الملف: " + err.message);
+      }
+    };
+    reader.readAsText(file);
+    event.target.value = "";
+  }
+
+  // ============ SNAPSHOTS ============
+  function saveSnapshot() {
+    const data = calculate();
+    const c = data.costs;
+
+    // MIDAS breakdown
+    const tlCapUsd = c.midasTlCost;
+    const tlCurUsd = inputs.midasTlCurrent / inputs.usdTl;
+    const usdCap = c.midasUsdCost;
+    const usdCur = inputs.midasUsdCurrent;
+
+    const snapshot = {
+      id: Date.now(),
+      date: new Date().toISOString(),
+      inputs: { ...inputs },
+      totalValue: data.totalValue,
+      totalCost: data.totalCost,
+      totalPnl: data.totalPnl,
+      totalPnlPct: data.totalPnlPct,
+      assets: data.assets.map(a => ({ name: a.name, value: a.value, cost: a.cost, pnl: a.pnl, pnlPct: a.pnlPct })),
+      midas: {
+        tlCapUsd, tlCurUsd, tlPnl: tlCurUsd - tlCapUsd,
+        tlCurTl: inputs.midasTlCurrent,
+        usdCap, usdCur, usdPnl: usdCur - usdCap
+      }
+    };
+    snapshots.push(snapshot);
+    snapshots.sort((a, b) => new Date(a.date) - new Date(b.date));
+    try { saveData("portfolio_snapshots", snapshots); } catch (e) {}
+    renderHistory();
+    renderCharts();
+    alert("✓ Snapshot saved!");
+  }
+
+  function deleteSnapshot(id) {
+    pendingDeleteId = id;
+    pendingDeleteType = "snapshot";
+    document.getElementById("modal-title").textContent = "Delete Snapshot?";
+    document.getElementById("modal-text").textContent = "هاد الـ snapshot رح ينحذف نهائياً.";
+    document.getElementById("confirm-modal").classList.add("active");
+  }
+
+  function closeModal() {
+    pendingDeleteId = null;
+    pendingDeleteType = null;
+    document.getElementById("confirm-modal").classList.remove("active");
+  }
+
+  function confirmAction() {
+    if (pendingDeleteId !== null) {
+      if (pendingDeleteType === "snapshot") {
+        snapshots = snapshots.filter(s => s.id !== pendingDeleteId);
+        try { saveData("portfolio_snapshots", snapshots); } catch (e) {}
+        renderHistory();
+        renderCharts();
+      } else if (pendingDeleteType === "tx") {
+        transactions = transactions.filter(t => t.id !== pendingDeleteId);
+        try { saveData("portfolio_transactions", transactions); } catch (e) {}
+        renderTransactions();
+        render();
+      }
+    }
+    closeModal();
+  }
+
+  function formatDate(iso) {
+    const d = new Date(iso);
+    return d.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }) +
+      " " + d.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
+  }
+
+  function renderHistory() {
+    const container = document.getElementById("snapshots-list");
+    if (snapshots.length === 0) {
+      container.innerHTML = `<div class="empty-state"><strong>No snapshots yet</strong>احفظ snapshot عشان تبدأ التتبع</div>`;
+      return;
+    }
+
+    const sortedAsc = [...snapshots].sort((a, b) => new Date(a.date) - new Date(b.date));
+    const reversed = [...sortedAsc].reverse();
+
+    container.innerHTML = reversed.map(s => {
+      const sn = s.totalPnl >= 0 ? "+" : "";
+      const pnlColor = s.totalPnl >= 0 ? "#047857" : "#be123c";
+
+      let changeHTML = "";
+      const myIdx = sortedAsc.findIndex(x => x.id === s.id);
+      if (myIdx > 0) {
+        const prev = sortedAsc[myIdx - 1];
+        const change = s.totalValue - prev.totalValue;
+        const changePct = (change / prev.totalValue) * 100;
+        const cSign = change >= 0 ? "+" : "";
+        const cColor = change >= 0 ? "#047857" : "#be123c";
+        changeHTML = `<span style="color:${cColor}; font-size:10px; margin-left:8px;">vs prev: ${cSign}$${change.toFixed(4)} (${changePct.toFixed(4)}%)</span>`;
+      }
+
+      return `
+        <div class="snapshot-row">
+          <div class="snapshot-info">
+            <strong>$${s.totalValue.toFixed(4)}</strong>
+            <p>${formatDate(s.date)} · <span style="color:${pnlColor}">${sn}$${s.totalPnl.toFixed(4)} (${s.totalPnlPct.toFixed(4)}%)</span>${changeHTML}</p>
+          </div>
+          <button class="btn-danger-link" onclick="deleteSnapshot(${s.id})">🗑</button>
+        </div>
+      `;
+    }).join("");
+  }
+
+  function renderCharts() {
+    const container = document.getElementById("charts-content");
+    if (snapshots.length < 2) {
+      container.innerHTML = `<div class="empty-state"><strong>Need 2+ snapshots</strong>احفظ كم snapshot عشان تطلع الرسوم البيانية</div>`;
+      return;
+    }
+
+    const sorted = [...snapshots].sort((a, b) => new Date(a.date) - new Date(b.date));
+    const first = sorted[0];
+    const last = sorted[sorted.length - 1];
+    const change = last.totalValue - first.totalValue;
+    const changePct = (change / first.totalValue) * 100;
+    const days = Math.round((new Date(last.date) - new Date(first.date)) / (1000 * 60 * 60 * 24));
+
+    // Augment data with per-asset values
+    const augmented = sorted.map(s => {
+      const obj = { ...s };
+      // Individual assets
+      ["AKBANK","MIDAS","GOLD","SILVER"].forEach(name => {
+        const a = s.assets?.find(x => x.name === name);
+        obj[`val_${name}`] = a?.value || 0;
+        obj[`pnl_${name}`] = a?.pnl || 0;
+        obj[`cost_${name}`] = a?.cost || 0;
+      });
+      // MIDAS breakdown
+      obj["midas_tl_usd"] = s.midas?.tlCurUsd || (s.inputs?.midasTlCurrent / s.inputs?.usdTl) || 0;
+      obj["midas_usd_cur"] = s.midas?.usdCur || s.inputs?.midasUsdCurrent || 0;
+      obj["midas_total"] = obj["val_MIDAS"] || 0;
+      return obj;
+    });
+
+    const colors = { AKBANK: "#b91c1c", MIDAS: "#7c3aed", GOLD: "#c9a961", SILVER: "#9aa0a6" };
+
+    // Charts
+    const totalChart = buildLineChart(augmented, [{ key: "totalValue", color: "#1c1917", label: "Total Value" }], "📊 Portfolio Value Over Time", false, "total");
+    const pnlChart = buildLineChart(augmented, [{ key: "totalPnl", color: "#1c1917", label: "P/L $" }], "📈 Total P/L Over Time", true, "pnl");
+    const assetChart = buildLineChart(augmented, [
+      { key: "val_AKBANK", color: colors.AKBANK, label: "AKBANK" },
+      { key: "val_MIDAS", color: colors.MIDAS, label: "MIDAS" },
+      { key: "val_GOLD", color: colors.GOLD, label: "GOLD" },
+      { key: "val_SILVER", color: colors.SILVER, label: "SILVER" }
+    ], "💼 Assets Over Time", false, "assets");
+
+    const akbankChart = buildLineChart(augmented, [{ key: "val_AKBANK", color: colors.AKBANK, label: "AKBANK" }], "🔴 AKBANK Over Time", false, "akbank");
+    const goldChart = buildLineChart(augmented, [{ key: "val_GOLD", color: colors.GOLD, label: "GOLD" }], "🥇 GOLD Over Time", false, "gold");
+    const silverChart = buildLineChart(augmented, [{ key: "val_SILVER", color: colors.SILVER, label: "SILVER" }], "🥈 SILVER Over Time", false, "silver");
+
+    // MIDAS charts
+    const midasTotalChart = buildLineChart(augmented, [{ key: "midas_total", color: colors.MIDAS, label: "MIDAS Total" }], "🟣 MIDAS Total Over Time", false, "midas_total");
+    const midasBreakdownChart = buildLineChart(augmented, [
+      { key: "midas_tl_usd", color: "#b91c1c", label: "MIDAS-TL ($)" },
+      { key: "midas_usd_cur", color: "#1d4ed8", label: "MIDAS-USD ($)" }
+    ], "🟣 MIDAS TL vs USD Over Time", false, "midas_breakdown");
+
+    const capitalChart = buildCapitalChart();
+
+    container.innerHTML = `
+      <div class="chart-stats">
+        <div class="stat-box"><div class="stat-label">Period</div><div class="stat-value">${days}d</div></div>
+        <div class="stat-box"><div class="stat-label">Change</div><div class="stat-value" style="color:${change >= 0 ? '#047857' : '#be123c'}">${change >= 0 ? '+' : ''}$${change.toFixed(2)}</div></div>
+        <div class="stat-box"><div class="stat-label">Return</div><div class="stat-value" style="color:${change >= 0 ? '#047857' : '#be123c'}">${change >= 0 ? '+' : ''}${changePct.toFixed(2)}%</div></div>
+      </div>
+
+      <h3 class="section-title" style="margin-top:8px;">📊 Portfolio Overview</h3>
+      ${totalChart}${pnlChart}${assetChart}${capitalChart}
+
+      <h3 class="section-title" style="margin-top:16px;">🟣 MIDAS</h3>
+      ${midasTotalChart}${midasBreakdownChart}
+
+      <h3 class="section-title" style="margin-top:16px;">🔴 AKBANK · 🥇 GOLD · 🥈 SILVER</h3>
+      ${akbankChart}${goldChart}${silverChart}
+    `;
+  }
+
+  function fmtMoney(v) {
+    const abs = Math.abs(v);
+    if (abs >= 1000) return "$" + (v / 1000).toFixed(2) + "K";
+    if (abs >= 100) return "$" + v.toFixed(0);
+    return "$" + v.toFixed(1);
+  }
+
+  function buildLineChart(data, series, title, hasZero, chartId) {
+    const W = 460, H = 240, P_LEFT = 50, P_RIGHT = 15, P_TOP = 15, P_BOT = 35;
+    const innerW = W - P_LEFT - P_RIGHT;
+    const innerH = H - P_TOP - P_BOT;
+
+    const allValues = data.flatMap(d => series.map(s => d[s.key]));
+    let yMin = Math.min(...allValues), yMax = Math.max(...allValues);
+    if (hasZero) { yMin = Math.min(yMin, 0); yMax = Math.max(yMax, 0); }
+    const yRange = yMax - yMin || 1;
+    yMin -= yRange * 0.15; yMax += yRange * 0.15;
+    const yRangeP = yMax - yMin;
+
+    const xStep = data.length > 1 ? innerW / (data.length - 1) : 0;
+    const yScale = (v) => P_TOP + innerH - ((v - yMin) / yRangeP) * innerH;
+    const xPos = (i) => P_LEFT + i * xStep;
+
+    // Grid lines (5 horizontal)
+    const gridLines = [];
+    const yTicks = [];
+    for (let i = 0; i <= 4; i++) {
+      const v = yMin + (yRangeP * i / 4);
+      const y = yScale(v);
+      gridLines.push(`<line x1="${P_LEFT}" y1="${y}" x2="${W - P_RIGHT}" y2="${y}" stroke="#e7e5e4" stroke-width="0.5"/>`);
+      yTicks.push(`<text x="${P_LEFT - 6}" y="${y + 3}" font-size="10" fill="#78716c" text-anchor="end" font-family="monospace">${fmtMoney(v)}</text>`);
+    }
+
+    const zeroLine = hasZero && yMin < 0 && yMax > 0
+      ? `<line x1="${P_LEFT}" y1="${yScale(0)}" x2="${W - P_RIGHT}" y2="${yScale(0)}" stroke="#1c1917" stroke-width="1" stroke-dasharray="3,3" opacity="0.5"/>`
+      : "";
+
+    // Paths and points
+    const paths = series.map(s => {
+      const points = data.map((d, i) => `${xPos(i)},${yScale(d[s.key])}`).join(" L ");
+      const dots = data.map((d, i) =>
+        `<circle cx="${xPos(i)}" cy="${yScale(d[s.key])}" r="4" fill="${s.color}" stroke="white" stroke-width="2" data-idx="${i}" data-value="${d[s.key].toFixed(4)}" data-date="${d.date}" data-label="${s.label}" class="chart-dot" onclick="showTooltip('${chartId}', this)" />`
+      ).join("");
+      return `<path d="M ${points}" fill="none" stroke="${s.color}" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round" />${dots}`;
+    }).join("");
+
+    // X axis labels - show first, last, and middle
+    const xIdx = data.length <= 4
+      ? data.map((_, i) => i)
+      : [...new Set([0, Math.floor(data.length / 3), Math.floor(2 * data.length / 3), data.length - 1])];
+    const xLabels = xIdx.map(i => {
+      const d = new Date(data[i].date);
+      return `<text x="${xPos(i)}" y="${H - 12}" font-size="10" fill="#78716c" text-anchor="middle">${d.toLocaleDateString("en-GB", { day: "2-digit", month: "short" })}</text>`;
+    }).join("");
+
+    const legend = series.map(s => `<div class="chart-legend-item"><div class="chart-legend-color" style="background:${s.color}"></div><span>${s.label}</span></div>`).join("");
+
+    return `
+      <div class="chart-card">
+        <div class="chart-title">${title}</div>
+        <div class="chart-tooltip" id="tooltip-${chartId}" style="display:none;"></div>
+        <svg class="chart-svg" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet">
+          ${gridLines.join("")}
+          ${zeroLine}
+          ${paths}
+          ${yTicks.join("")}
+          ${xLabels}
+        </svg>
+        <div class="chart-legend">${legend}</div>
+        <p style="font-size:10px; color:#a8a29e; text-align:center; margin-top:8px;">💡 اضغط على أي نقطة لرؤية القيمة</p>
+      </div>
+    `;
+  }
+
+  function buildAssetChart(data) {
+    const colors = { AKBANK: "#b91c1c", MIDAS: "#7c3aed", GOLD: "#c9a961", SILVER: "#9aa0a6" };
+    const series = ["AKBANK", "MIDAS", "GOLD", "SILVER"].map(name => ({
+      key: `__asset_${name}`,
+      color: colors[name],
+      label: name
+    }));
+
+    // Augment data with per-asset values for use with buildLineChart
+    const augmented = data.map(d => {
+      const obj = { ...d };
+      ["AKBANK", "MIDAS", "GOLD", "SILVER"].forEach(name => {
+        const a = d.assets.find(x => x.name === name);
+        obj[`__asset_${name}`] = a ? a.value : 0;
+      });
+      return obj;
+    });
+
+    return buildLineChart(augmented, series, "Assets Over Time", false, "assets");
+  }
+
+  function buildCapitalChart() {
+    if (transactions.length === 0) return "";
+
+    // Sort transactions by date
+    const sorted = [...transactions].sort((a, b) => new Date(a.date) - new Date(b.date));
+
+    // Build cumulative running totals per asset over time
+    let runAkbank = 0, runMidas = 0, runGold = 0, runSilver = 0;
+    const series = { AKBANK: [], MIDAS: [], GOLD: [], SILVER: [], TOTAL: [] };
+    const dates = [];
+
+    // Group by date - take last running totals at each date
+    const byDate = {};
+    sorted.forEach(t => {
+      const sign = t.type === "deposit" ? 1 : -1;
+      if (t.asset === "AKBANK") runAkbank += sign * t.amount;
+      if (t.asset === "MIDAS")  runMidas  += sign * t.amount;
+      if (t.asset === "GOLD")   runGold   += sign * t.amount * (t.price || 0);
+      if (t.asset === "SILVER") runSilver += sign * t.amount * (t.price || 0);
+      byDate[t.date] = { AKBANK: runAkbank, MIDAS: runMidas, GOLD: runGold, SILVER: runSilver };
+    });
+
+    const sortedDates = Object.keys(byDate).sort();
+    sortedDates.forEach(d => {
+      dates.push(d);
+      series.AKBANK.push(byDate[d].AKBANK);
+      series.MIDAS.push(byDate[d].MIDAS);
+      series.GOLD.push(byDate[d].GOLD);
+      series.SILVER.push(byDate[d].SILVER);
+      series.TOTAL.push(byDate[d].AKBANK + byDate[d].MIDAS + byDate[d].GOLD + byDate[d].SILVER);
+    });
+
+    if (dates.length < 2) return "";
+
+    // Convert to chart-friendly format
+    const data = dates.map((date, i) => ({
+      date,
+      __cap_AKBANK: series.AKBANK[i],
+      __cap_MIDAS: series.MIDAS[i],
+      __cap_GOLD: series.GOLD[i],
+      __cap_SILVER: series.SILVER[i],
+      __cap_TOTAL: series.TOTAL[i]
+    }));
+
+    const colors = { AKBANK: "#b91c1c", MIDAS: "#7c3aed", GOLD: "#c9a961", SILVER: "#9aa0a6" };
+    const seriesConfig = [
+      { key: "__cap_TOTAL", color: "#1c1917", label: "TOTAL" },
+      { key: "__cap_AKBANK", color: colors.AKBANK, label: "AKBANK" },
+      { key: "__cap_MIDAS", color: colors.MIDAS, label: "MIDAS" },
+      { key: "__cap_GOLD", color: colors.GOLD, label: "GOLD" },
+      { key: "__cap_SILVER", color: colors.SILVER, label: "SILVER" }
+    ];
+
+    return buildLineChart(data, seriesConfig, "💰 Capital Over Time (مجموع الإيداعات)", false, "capital");
+  }
+
+  function showTooltip(chartId, dotEl) {
+    const tooltip = document.getElementById(`tooltip-${chartId}`);
+    if (!tooltip) return;
+
+    const value = parseFloat(dotEl.getAttribute("data-value"));
+    const date = dotEl.getAttribute("data-date");
+    const label = dotEl.getAttribute("data-label");
+    const dateStr = new Date(date).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
+
+    // Value color: green if positive (P/L only), red if negative
+    // For value charts (Total, Assets, Capital): always white
+    // For P/L chart: green if value > 0, red if < 0
+    const isPnlChart = chartId === "pnl";
+    let valueColor = "white";
+    if (isPnlChart) {
+      valueColor = value >= 0 ? "#34d399" : "#fb7185";
+    }
+
+    // Change color: green if increase from first, red if decrease
+    const svg = dotEl.closest("svg");
+    const sameSeriesDots = svg.querySelectorAll(`.chart-dot[data-label="${label}"]`);
+    const firstValue = sameSeriesDots.length > 0 ? parseFloat(sameSeriesDots[0].getAttribute("data-value")) : value;
+    const diff = value - firstValue;
+    const diffPct = firstValue !== 0 ? (diff / Math.abs(firstValue)) * 100 : 0;
+
+    const changeColor = diff >= 0 ? "#34d399" : "#fb7185";
+    const arrow = diff >= 0 ? "▲" : "▼";
+    const sign = diff >= 0 ? "+" : "";
+
+    let diffHtml = "";
+    if (sameSeriesDots.length > 1 && sameSeriesDots[0] !== dotEl) {
+      diffHtml = `<br><span style="font-size:10px; color:${changeColor};">${arrow} ${sign}$${diff.toFixed(4)} (${diffPct.toFixed(2)}%) vs first</span>`;
+    }
+
+    tooltip.innerHTML = `<strong style="color:white;">${label}</strong> · ${dateStr} · <strong style="color:${valueColor};">$${value.toFixed(4)}</strong>${diffHtml}`;
+    tooltip.style.display = "block";
+
+    // Highlight selected dot
+    document.querySelectorAll(`.chart-dot`).forEach(d => d.setAttribute("r", "4"));
+    dotEl.setAttribute("r", "6");
+
+    // Auto-hide after 4s
+    clearTimeout(window._tooltipTimer);
+    window._tooltipTimer = setTimeout(() => {
+      tooltip.style.display = "none";
+      document.querySelectorAll(`.chart-dot`).forEach(d => d.setAttribute("r", "4"));
+    }, 4000);
+  }
+
+  function switchTab(tab) {
+    document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+    document.querySelectorAll(".tab-content").forEach(t => t.classList.remove("active"));
+    document.querySelector(`.tab[data-tab="${tab}"]`).classList.add("active");
+    document.getElementById(`tab-${tab}`).classList.add("active");
+
+    if (tab === "movements") renderTransactions();
+    if (tab === "history") renderHistory();
+    if (tab === "charts") renderCharts();
+    if (tab === "tools") renderTools();
+
+    // Save active tab with userId prefix
+    const uid = window._currentUserId;
+    if (uid) try { localStorage.setItem(`${uid}_active_tab`, tab); } catch (e) {}
+  }
+
+  // Restore last active tab on load
+  try {
+    const lastTab = localStorage.getItem("active_tab");
+    if (lastTab && lastTab !== "current") switchTab(lastTab);
+  } catch (e) {}
+
+  // ============ TOOLS ============
+  let alerts = {};
+
+  function renderTools() {
+    // Load saved alerts
+    try {
+      const saved = localStorage.getItem("portfolio_alerts");
+      if (saved) {
+        alerts = JSON.parse(saved);
+        if (alerts.gold) document.getElementById("alert-gold").value = alerts.gold;
+        if (alerts.silver) document.getElementById("alert-silver").value = alerts.silver;
+        if (alerts.usdtl) document.getElementById("alert-usdtl").value = alerts.usdtl;
+        if (alerts.total) document.getElementById("alert-total").value = alerts.total;
+      }
+    } catch (e) {}
+
+    checkAlerts();
+    renderRebalanceInputs();
+  }
+
+  function saveAlerts() {
+    alerts = {
+      gold: parseFloat(document.getElementById("alert-gold").value) || null,
+      silver: parseFloat(document.getElementById("alert-silver").value) || null,
+      usdtl: parseFloat(document.getElementById("alert-usdtl").value) || null,
+      total: parseFloat(document.getElementById("alert-total").value) || null
+    };
+    try { saveData("portfolio_alerts", alerts); } catch (e) {}
+    checkAlerts();
+  }
+
+  function checkAlerts() {
+    const data = calculate();
+    const status = document.getElementById("alerts-status");
+    if (!status) return;
+
+    const checks = [
+      { label: "🥇 Gold", current: inputs.goldPrice, target: alerts.gold, unit: "$/g", higher: "above target ✅", lower: "below target ⏳" },
+      { label: "🥈 Silver", current: inputs.silverPrice, target: alerts.silver, unit: "$/g", higher: "above target ✅", lower: "below target ⏳" },
+      { label: "💱 USD/TL", current: inputs.usdTl, target: alerts.usdtl, unit: "₺", higher: "above target ✅", lower: "below target ⏳" },
+      { label: "💼 Total", current: data.totalValue, target: alerts.total, unit: "$", higher: "reached target 🎉", lower: "not yet ⏳" }
+    ];
+
+    const rows = checks.filter(c => c.target).map(c => {
+      const reached = c.current >= c.target;
+      const pct = ((c.current - c.target) / c.target * 100);
+      const sign = pct >= 0 ? "+" : "";
+      const color = reached ? "#047857" : "#be123c";
+      return `
+        <div style="display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid #f5f5f4; font-size:12px;">
+          <span style="color:#44403c;">${c.label}</span>
+          <span style="color:#78716c;">${c.unit}${c.target.toFixed(2)} target</span>
+          <span style="color:${color}; font-weight:500;">${sign}${pct.toFixed(2)}%</span>
+        </div>
+      `;
+    }).join("");
+
+    status.innerHTML = rows || `<p style="font-size:12px; color:#a8a29e; text-align:center; padding:12px;">ما في alerts مضبوطة</p>`;
+  }
+
+  // ============ DCA CALCULATOR ============
+  function calcDCA() {
+    const monthly = parseFloat(document.getElementById("dca-monthly").value) || 0;
+    const months = parseInt(document.getElementById("dca-months").value) || 12;
+    const annualReturn = parseFloat(document.getElementById("dca-return").value) || 0;
+    const asset = document.getElementById("dca-asset").value;
+    const data = calculate();
+
+    if (!monthly || !months) return;
+
+    const monthlyReturn = annualReturn / 100 / 12;
+    let currentValue = asset === "total" ? data.totalValue : (data.assets.find(a => a.name === asset)?.value || 0);
+    let currentCost = asset === "total" ? data.totalCost : (data.assets.find(a => a.name === asset)?.cost || 0);
+
+    // Calculate month by month
+    const timeline = [];
+    let value = currentValue;
+    let invested = currentCost;
+
+    for (let m = 1; m <= months; m++) {
+      value = value * (1 + monthlyReturn) + monthly;
+      invested += monthly;
+      if (m === 1 || m % 3 === 0 || m === months) {
+        timeline.push({ month: m, value, invested, pnl: value - invested });
+      }
+    }
+
+    const finalValue = timeline[timeline.length - 1].value;
+    const totalInvested = timeline[timeline.length - 1].invested;
+    const totalPnl = finalValue - totalInvested;
+    const breakeven = currentCost > currentValue ? Math.ceil(Math.log(currentCost / currentValue) / Math.log(1 + monthlyReturn)) : 0;
+
+    const tableRows = timeline.map(t => `
+      <div style="display:flex; justify-content:space-between; font-size:11px; padding:6px 0; border-bottom:1px solid #f5f5f4;">
+        <span style="color:#78716c;">Month ${t.month}</span>
+        <span style="color:#1c1917; font-weight:500;">$${t.value.toFixed(0)}</span>
+        <span style="color:#57534e;">invested $${t.invested.toFixed(0)}</span>
+        <span style="${t.pnl >= 0 ? 'color:#047857' : 'color:#be123c'};">${t.pnl >= 0 ? '+' : ''}$${t.pnl.toFixed(0)}</span>
+      </div>
+    `).join("");
+
+    document.getElementById("dca-result").innerHTML = `
+      <div style="background:#1c1917; color:#fafaf9; padding:16px; margin-bottom:12px;">
+        <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
+          <span style="font-size:11px; color:#a8a29e; text-transform:uppercase; letter-spacing:0.2em;">After ${months} months</span>
+        </div>
+        <p style="font-size:28px; font-weight:bold;">$${finalValue.toFixed(2)}</p>
+        <p style="font-size:12px; color:#34d399; margin-top:4px;">+$${totalPnl.toFixed(2)} profit · invested $${totalInvested.toFixed(2)}</p>
+        ${breakeven > 0 ? `<p style="font-size:11px; color:#fbbf24; margin-top:4px;">⏱ Breakeven in ~${breakeven} months</p>` : `<p style="font-size:11px; color:#34d399; margin-top:4px;">✅ Already profitable</p>`}
+      </div>
+      <div>${tableRows}</div>
+    `;
+  }
+
+  // ============ REBALANCING ============
+  let targetAlloc = { AKBANK: 15, MIDAS: 40, GOLD: 30, SILVER: 15 };
+
+  function renderRebalanceInputs() {
+    try {
+      const saved = localStorage.getItem("portfolio_target_alloc");
+      if (saved) targetAlloc = JSON.parse(saved);
+    } catch (e) {}
+
+    const colors = { AKBANK: "#b91c1c", MIDAS: "#7c3aed", GOLD: "#c9a961", SILVER: "#9aa0a6" };
+    const html = Object.entries(targetAlloc).map(([asset, pct]) => `
+      <div style="display:flex; align-items:center; gap:12px; margin-bottom:8px;">
+        <div style="width:8px; height:8px; background:${colors[asset]};"></div>
+        <span style="font-size:12px; width:60px; color:#44403c;">${asset}</span>
+        <input type="number" id="alloc-${asset}" value="${pct}" min="0" max="100" step="1"
+          style="width:60px; padding:6px; border:1px solid #d6d3d1; font-family:inherit; font-size:12px; text-align:center;"
+          oninput="updateAllocTotal()" />
+        <span style="font-size:12px; color:#78716c;">%</span>
+      </div>
+    `).join("");
+
+    document.getElementById("rebalance-inputs").innerHTML = html + `<div id="alloc-total" style="font-size:11px; margin-bottom:12px;"></div>`;
+    updateAllocTotal();
+  }
+
+  function updateAllocTotal() {
+    const total = ["AKBANK","MIDAS","GOLD","SILVER"].reduce((s, a) => {
+      return s + (parseFloat(document.getElementById(`alloc-${a}`)?.value) || 0);
+    }, 0);
+    const el = document.getElementById("alloc-total");
+    if (el) {
+      el.textContent = `المجموع: ${total}%`;
+      el.style.color = Math.abs(total - 100) < 0.01 ? "#047857" : "#be123c";
+    }
+  }
+
+  function calcRebalance() {
+    const data = calculate();
+    const colors = { AKBANK: "#b91c1c", MIDAS: "#7c3aed", GOLD: "#c9a961", SILVER: "#9aa0a6" };
+
+    // Get target allocations
+    const targets = {};
+    let totalTarget = 0;
+    ["AKBANK","MIDAS","GOLD","SILVER"].forEach(a => {
+      targets[a] = parseFloat(document.getElementById(`alloc-${a}`)?.value) || 0;
+      totalTarget += targets[a];
+    });
+
+    if (Math.abs(totalTarget - 100) > 0.5) {
+      document.getElementById("rebalance-result").innerHTML = `<p style="color:#be123c; font-size:12px;">⚠ المجموع لازم يساوي 100% (هلق ${totalTarget.toFixed(1)}%)</p>`;
+      return;
+    }
+
+    try { saveData("portfolio_target_alloc", targets); } catch (e) {}
+
+    const totalValue = data.totalValue;
+    const rows = data.assets.map(a => {
+      const current = (a.value / totalValue) * 100;
+      const target = targets[a.name] || 0;
+      const diff = current - target;
+      const diffUsd = (diff / 100) * totalValue;
+      const action = diff > 2 ? `بيع $${Math.abs(diffUsd).toFixed(0)}` : diff < -2 ? `شتري $${Math.abs(diffUsd).toFixed(0)}` : "✅ متوازن";
+      const actionColor = diff > 2 ? "#be123c" : diff < -2 ? "#047857" : "#047857";
+
+      return `
+        <div style="background:white; border:1px solid #d6d3d1; padding:12px; margin-bottom:8px;">
+          <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
+            <div style="width:8px; height:8px; background:${colors[a.name]};"></div>
+            <span style="font-size:12px; font-weight:bold;">${a.name}</span>
+          </div>
+          <div style="display:flex; justify-content:space-between; font-size:11px;">
+            <span style="color:#57534e;">Current: <strong>${current.toFixed(1)}%</strong></span>
+            <span style="color:#57534e;">Target: <strong>${target}%</strong></span>
+            <span style="color:${actionColor}; font-weight:500;">${action}</span>
+          </div>
+          <div style="height:4px; background:#f5f5f4; margin-top:8px; position:relative;">
+            <div style="position:absolute; height:100%; background:${colors[a.name]}; width:${Math.min(current, 100)}%;"></div>
+            <div style="position:absolute; height:100%; width:2px; background:#1c1917; left:${Math.min(target, 100)}%;"></div>
+          </div>
+          <div style="display:flex; justify-content:space-between; font-size:9px; color:#a8a29e; margin-top:4px;">
+            <span>current</span>
+            <span>│ target</span>
+          </div>
+        </div>
+      `;
+    }).join("");
+
+    const isBalanced = data.assets.every(a => Math.abs((a.value / totalValue * 100) - (targets[a.name] || 0)) <= 2);
+
+    document.getElementById("rebalance-result").innerHTML = `
+      <div style="text-align:center; padding:12px; margin-bottom:12px; background:${isBalanced ? '#f0fdf4' : '#fef2f2'}; border:1px solid ${isBalanced ? '#bbf7d0' : '#fecaca'};">
+        <p style="font-size:13px; font-weight:bold; color:${isBalanced ? '#047857' : '#be123c'};">
+          ${isBalanced ? '✅ محفظتك متوازنة!' : '⚖️ تحتاج rebalancing'}
+        </p>
+      </div>
+      ${rows}
+    `;
+  }
+
+  // ============ AI ANALYSIS - COPY PROMPT ============
+  function copyAnalysisPrompt() {
+    const data = calculate();
+    const c = data.costs;
+
+    const tlCurUsd = inputs.midasTlCurrent / inputs.usdTl;
+    const tlCapUsd = c.midasTlCost;
+    const tlPnlUsd = tlCurUsd - tlCapUsd;
+    const tlPnlPct = tlCapUsd ? (tlPnlUsd / tlCapUsd * 100) : 0;
+    const tlPnlTl = inputs.midasTlCurrent - c.midasTlCostInTl;
+    const tlPnlPctTl = c.midasTlCostInTl ? (tlPnlTl / c.midasTlCostInTl * 100) : 0;
+    const usdCur = inputs.midasUsdCurrent;
+    const usdCap = c.midasUsdCost;
+    const usdPnl = usdCur - usdCap;
+    const usdPnlPct = usdCap ? (usdPnl / usdCap * 100) : 0;
+
+    const prompt = `حلل محفظة استثماري الحالية وأعطيني توصيات عملية باللغة العربية (لهجة شامية). كن صريحاً ومحدداً.
+
+═══════════════════════════════
+📊 بيانات المحفظة — ${new Date().toLocaleDateString("en-GB")}
+═══════════════════════════════
+
+💼 TOTAL
+• القيمة الكلية:   $${data.totalValue.toFixed(2)}
+• رأس المال:       $${data.totalCost.toFixed(2)}
+• P/L:             $${data.totalPnl.toFixed(2)} (${data.totalPnlPct.toFixed(2)}%)
+
+─────────────────────────────
+🔴 AKBANK
+• القيمة:     $${data.assets[0].value.toFixed(2)}
+• رأس المال:  $${data.assets[0].cost.toFixed(2)}
+• P/L:        $${data.assets[0].pnl.toFixed(2)} (${data.assets[0].pnlPct.toFixed(2)}%)
+
+🟣 MIDAS
+• القيمة:     $${data.assets[1].value.toFixed(2)}
+• رأس المال:  $${data.assets[1].cost.toFixed(2)}
+• P/L:        $${data.assets[1].pnl.toFixed(2)} (${data.assets[1].pnlPct.toFixed(2)}%)
+
+  🇹🇷 القسم التركي:
+  • رأس المال: ₺${c.midasTlCostInTl.toFixed(2)} = $${tlCapUsd.toFixed(2)}
+  • القيمة:    ₺${inputs.midasTlCurrent.toFixed(2)} = $${tlCurUsd.toFixed(2)}
+  • P/L (₺):   ₺${tlPnlTl.toFixed(2)} (${tlPnlPctTl.toFixed(2)}%)
+  • P/L ($):   $${tlPnlUsd.toFixed(2)} (${tlPnlPct.toFixed(2)}%)
+
+  🇺🇸 القسم الدولاري:
+  • رأس المال: $${usdCap.toFixed(2)}
+  • القيمة:    $${usdCur.toFixed(2)}
+  • P/L:       $${usdPnl.toFixed(2)} (${usdPnlPct.toFixed(2)}%)
+
+🥇 GOLD (${c.goldGrams.toFixed(2)}g)
+• القيمة:     $${data.assets[2].value.toFixed(2)}
+• رأس المال:  $${data.assets[2].cost.toFixed(2)}
+• P/L:        $${data.assets[2].pnl.toFixed(2)} (${data.assets[2].pnlPct.toFixed(2)}%)
+• سعر/غرام:   $${inputs.goldPrice.toFixed(4)}
+
+🥈 SILVER (${c.silverGrams.toFixed(2)}g)
+• القيمة:     $${data.assets[3].value.toFixed(2)}
+• رأس المال:  $${data.assets[3].cost.toFixed(2)}
+• P/L:        $${data.assets[3].pnl.toFixed(2)} (${data.assets[3].pnlPct.toFixed(2)}%)
+• سعر/غرام:   $${inputs.silverPrice.toFixed(4)}
+
+─────────────────────────────
+💱 الأسعار الحالية
+• USD/TL:  ₺${inputs.usdTl.toFixed(4)}
+• Gold:    $${inputs.goldPrice.toFixed(4)}/g
+• Silver:  $${inputs.silverPrice.toFixed(4)}/g
+
+═══════════════════════════════
+
+أعطيني:
+1. تقييم الوضع الحالي
+2. نقاط القوة والضعف
+3. المخاطر الرئيسية
+4. توصيات عملية
+5. أولويات العمل`;
+
+    navigator.clipboard.writeText(prompt).then(() => {
+      const output = document.getElementById("ai-output");
+      output.innerHTML = `
+        <div class="panel" style="padding:16px; text-align:center;">
+          <p style="font-size:24px; margin-bottom:8px;">✅</p>
+          <p style="font-size:13px; font-weight:bold; color:#047857; margin-bottom:8px;">تم النسخ!</p>
+          <p style="font-size:12px; color:#57534e;">روح على Claude.ai والصق — وأنا أحلل فوراً 🎯</p>
+        </div>
+      `;
+    }).catch(() => {
+      // Fallback: show the prompt text in a textarea
+      const output = document.getElementById("ai-output");
+      output.innerHTML = `
+        <div class="panel" style="padding:16px;">
+          <p style="font-size:12px; color:#57534e; margin-bottom:8px;">انسخ النص هون يدوياً:</p>
+          <textarea readonly style="width:100%; height:200px; font-size:10px; font-family:monospace; border:1px solid #d6d3d1; padding:8px; resize:none;">${prompt}</textarea>
+        </div>
+      `;
+    });
+  }
+
+  render();
+  renderTransactions();
+  renderHistory();
+
+  window.addEventListener("load-cache", (e) => {
+    const uid = e.detail.uid;
+    const hasCache = loadLocalCache(uid);
+    // If no cache, show loading overlay
+    if (!hasCache) {
+      let overlay = document.getElementById("loading-overlay");
+      if (!overlay) {
+        overlay = document.createElement("div");
+        overlay.id = "loading-overlay";
+        overlay.style.cssText = "position:fixed; inset:0; background:#fafaf9; display:flex; flex-direction:column; align-items:center; justify-content:center; z-index:100; color:#78716c;";
+        overlay.innerHTML = `
+          <div style="font-size:40px; margin-bottom:16px; display:inline-block; animation:spin 1s linear infinite;">↻</div>
+          <p style="font-size:12px; letter-spacing:0.2em; text-transform:uppercase;">Loading your portfolio...</p>
+          <style>@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}</style>
+        `;
+        document.body.appendChild(overlay);
+      }
+    }
+    // Restore active tab
+    try {
+      const lastTab = localStorage.getItem(`${uid}_active_tab`);
+      if (lastTab && lastTab !== "current") switchTab(lastTab);
+    } catch(e) {}
+  });
+  window.addEventListener("fb-sync-load", (e) => {
+    const { cloudInputs, cloudTx, cloudSnaps, isNewUser } = e.detail;
+
+    if (isNewUser) {
+      // New user — clear any cached data for this userId and start fresh
+      inputs = { ...DEFAULT_INPUTS };
+      tempInputs = { ...inputs };
+      transactions = [];
+      snapshots = [];
+      const uid = user.uid;
+      try {
+        localStorage.removeItem(`${uid}_portfolio_inputs`);
+        localStorage.removeItem(`${uid}_portfolio_transactions`);
+        localStorage.removeItem(`${uid}_portfolio_snapshots`);
+        localStorage.removeItem(`${uid}_portfolio_alerts`);
+        localStorage.removeItem(`${uid}_portfolio_target_alloc`);
+        localStorage.removeItem(`${uid}_active_tab`);
+      } catch (e) {}
+      console.log("✓ New user — started fresh");
+    } else {
+      // Compare cloud vs local timestamps
+      const uid = window._currentUserId;
+      const localSnapTime = (() => {
+        try {
+          const s = localStorage.getItem(`${uid}_portfolio_snapshots`);
+          if (!s) return 0;
+          const snaps = JSON.parse(s);
+          if (!snaps.length) return 0;
+          return new Date(snaps[snaps.length - 1].date).getTime();
+        } catch(e) { return 0; }
+      })();
+
+      const cloudSnapTime = (() => {
+        if (!cloudSnaps || !cloudSnaps.length) return 0;
+        return new Date(cloudSnaps[cloudSnaps.length - 1].date).getTime();
+      })();
+
+      // Use whichever is newer
+      if (cloudSnapTime > localSnapTime) {
+        // Cloud is newer — use cloud data
+        console.log("☁️ Cloud is newer, using cloud data");
+        if (cloudInputs) { inputs = { ...DEFAULT_INPUTS, ...cloudInputs }; tempInputs = { ...inputs }; }
+        if (cloudTx) transactions = cloudTx;
+        if (cloudSnaps) snapshots = cloudSnaps;
+        // Update local cache
+        if (uid) {
+          try {
+            if (cloudInputs) localStorage.setItem(`${uid}_portfolio_inputs`, JSON.stringify(cloudInputs));
+            if (cloudTx) localStorage.setItem(`${uid}_portfolio_transactions`, JSON.stringify(cloudTx));
+            if (cloudSnaps) localStorage.setItem(`${uid}_portfolio_snapshots`, JSON.stringify(cloudSnaps));
+          } catch(e) {}
+        }
+      } else {
+        // Local is same or newer — keep what loadLocalCache already loaded
+        console.log("💾 Local cache is up to date");
+      }
+      console.log("✓ Applied data to app");
+    }
+
+    const activeTab = document.querySelector(".tab.active")?.getAttribute("data-tab") || "current";
+    render();
+    if (activeTab === "movements") renderTransactions();
+    if (activeTab === "history") renderHistory();
+    if (activeTab === "charts") renderCharts();
+
+    // Remove loading overlay if present
+    const overlay = document.getElementById("loading-overlay");
+    if (overlay) overlay.remove();
+  });
+
+  // Helper: save to Firebase only (no localStorage)
+  function saveData(key, data) {
+    const keyMap = {
+      "portfolio_inputs": "inputs",
+      "portfolio_transactions": "transactions",
+      "portfolio_snapshots": "snapshots",
+      "portfolio_alerts": "alerts",
+      "portfolio_target_alloc": "targetAlloc"
+    };
+    if (keyMap[key]) {
+      window.dispatchEvent(new CustomEvent("fb-save", { detail: { key: keyMap[key], data } }));
+    }
+    // Cache with userId prefix for quick load next time
+    const uid = window._currentUserId;
+    if (uid) {
+      try { localStorage.setItem(`${uid}_${key}`, JSON.stringify(data)); } catch(e) {}
+    }
+  }
+
+  function loadLocalCache(uid) {
+    try {
+      const s = localStorage.getItem(`${uid}_portfolio_inputs`);
+      if (s) { inputs = { ...DEFAULT_INPUTS, ...JSON.parse(s) }; tempInputs = { ...inputs }; }
+      const t = localStorage.getItem(`${uid}_portfolio_transactions`);
+      if (t) transactions = JSON.parse(t);
+      const n = localStorage.getItem(`${uid}_portfolio_snapshots`);
+      if (n) snapshots = JSON.parse(n);
+      if (s || t || n) {
+        render();
+        renderHistory();
+        return true; // Has cache
+      }
+    } catch(e) {}
+    return false; // No cache — new device
+  }
+  let _haremUsd = null;
+  let _haremGold = null;
+  let _haremSilver = null;
+
+  function updateRateIndicator(failed) {
+    const indicator = document.getElementById("rate-indicator");
+    if (!indicator) return;
+
+    if (failed) {
+      indicator.innerHTML = `
+        <span style="font-size:10px; color:#a8a29e;">
+          ⚠ Live rates unavailable
+          <button onclick="fetchAllRates()" style="margin-left:6px; background:#fafaf9; color:#1c1917; border:1px solid #d6d3d1; padding:2px 8px; font-size:10px; cursor:pointer; font-family:inherit;">↻ Retry</button>
+        </span>
+      `;
+      return;
+    }
+
+    const usdHtml = _haremUsd
+      ? `<span style="color:#047857;">💱 USD: <strong>₺${_haremUsd.toFixed(4)}</strong></span>`
+      : `<span style="color:#a8a29e;">💱 USD: ...</span>`;
+
+    const goldHtml = _haremGold
+      ? `<span style="color:#047857;">🥇 Gold: <strong>$${_haremGold.toFixed(4)}/g</strong></span>`
+      : `<span style="color:#a8a29e;">🥇 Gold: ...</span>`;
+
+    const silverHtml = _haremSilver
+      ? `<span style="color:#047857;">🥈 Silver: <strong>$${_haremSilver.toFixed(4)}/g</strong></span>`
+      : `<span style="color:#a8a29e;">🥈 Silver: ...</span>`;
+
+    indicator.innerHTML = `
+      <div style="font-size:11px; line-height:1.7; display:flex; flex-wrap:wrap; align-items:center; gap:8px;">
+        ${usdHtml} · ${goldHtml} · ${silverHtml}
+        <button onclick="fetchAllRates()" style="background:#fafaf9; color:#1c1917; border:1px solid #d6d3d1; padding:2px 8px; font-size:10px; cursor:pointer; font-family:inherit;">↻</button>
+      </div>
+    `;
+  }
+
+  // ============ HELPER: race multiple proxies, return first success ============
+  async function raceProxies(targetUrl) {
+    const proxyUrls = [
+      "https://api.allorigins.win/raw?url=" + encodeURIComponent(targetUrl),
+      "https://corsproxy.io/?" + encodeURIComponent(targetUrl),
+      "https://api.codetabs.com/v1/proxy?quest=" + encodeURIComponent(targetUrl)
+    ];
+
+    const controllers = proxyUrls.map(() => new AbortController());
+
+    const requests = proxyUrls.map((url, i) =>
+      fetch(url, { signal: controllers[i].signal }).then(async r => {
+        if (!r.ok) throw new Error("status " + r.status);
+        return await r.text();
+      })
+    );
+
+    try {
+      const html = await Promise.any(requests);
+      // Cancel slower requests
+      controllers.forEach(c => { try { c.abort(); } catch (e) {} });
+      return html;
+    } catch (err) {
+      return null;
+    }
+  }
+
+  // ============ FETCH USD/TL FROM DOVIZ HAREM (returns both Harem Satış and Kuveyt Alış) ============
+  async function fetchHaremPage() {
+    const html = await raceProxies("https://kur.doviz.com/harem/amerikan-dolari");
+    if (!html) return { haremSatis: null, kuveytAlis: null };
+
+    // Get Harem USD Satış
+    let haremSatis = null;
+    const haremPatterns = [
+      /Harem\s*Amerikan\s*Dolar[ıi]\s*Harem[\s\S]{0,300}?<td[^>]*>\s*(\d{2}[.,]\d{2,4})\s*<\/td>\s*<td[^>]*>\s*(\d{2}[.,]\d{2,4})\s*<\/td>/i,
+      /\/harem\/amerikan-dolari[\s\S]{0,300}?<\/a>[\s\S]{0,100}?<td[^>]*>\s*(\d{2}[.,]\d{2,4})\s*<\/td>\s*<td[^>]*>\s*(\d{2}[.,]\d{2,4})\s*<\/td>/i,
+      /Harem\s*Amerikan\s*Dolar[ıi][\s\S]{0,400}?(\d{2}[.,]\d{4})[\s\S]{1,100}?(\d{2}[.,]\d{4})/
+    ];
+    for (const pattern of haremPatterns) {
+      const match = html.match(pattern);
+      if (match) {
+        const alis = parseFloat(match[1].replace(",", "."));
+        const satis = parseFloat(match[2].replace(",", "."));
+        if (satis > 30 && satis < 100 && satis > alis && (satis - alis) < 5) {
+          haremSatis = satis;
+          break;
+        }
+      }
+    }
+
+    // Get Kuveyt Türk USD Alış
+    let kuveytAlis = null;
+    const kuveytPatterns = [
+      /Kuveyt\s*T[üu]rk\s*Amerikan\s*Dolar[ıi][\s\S]{0,400}?<td[^>]*>\s*(\d{2}[.,]\d{2,4})\s*<\/td>/i,
+      /\/kuveyt-turk\/amerikan-dolari[\s\S]{0,500}?<td[^>]*>\s*(\d{2}[.,]\d{2,4})\s*<\/td>/i
+    ];
+    for (const pattern of kuveytPatterns) {
+      const match = html.match(pattern);
+      if (match) {
+        const alis = parseFloat(match[1].replace(",", "."));
+        if (alis > 30 && alis < 100) {
+          kuveytAlis = alis;
+          break;
+        }
+      }
+    }
+
+    return { haremSatis, kuveytAlis };
+  }
+
+  // ============ FETCH GOLD FROM DOVIZ ALTIN HAREM ============
+  async function fetchHaremGold() {
+    const html = await raceProxies("https://altin.doviz.com/harem");
+    if (!html) return null;
+
+    const patterns = [
+      /USD\s*\/\s*KG[\s\S]{0,400}?<td[^>]*>\s*([\d.]+,\d{2})\s*<\/td>/i,
+      /usd-kg[\s\S]{0,400}?<td[^>]*>\s*([\d.]+,\d{2})\s*<\/td>/i,
+      /USD\/KG[\s\S]{0,500}?(\d{1,3}\.\d{3},\d{2})/,
+      /Harem\s*USD\/KG[\s\S]{0,500}?(\d{1,3}\.\d{3},\d{2})/i
+    ];
+
+    for (const pattern of patterns) {
+      const match = html.match(pattern);
+      if (match) {
+        const usdKgStr = match[1].replace(/\./g, "").replace(",", ".");
+        const usdKg = parseFloat(usdKgStr);
+        if (usdKg > 50000 && usdKg < 500000) {
+          return (usdKg / 1000) - 1.068 - 0.04;
+        }
+      }
+    }
+    return null;
+  }
+
+  // ============ FETCH SILVER FROM KUVEYT TÜRK ============
+  async function fetchKuveytSilverTl() {
+    const html = await raceProxies("https://altin.doviz.com/kuveyt-turk");
+    if (!html) return null;
+
+    const patterns = [
+      /Kuveyt\s*T[üu]rk\s*Gram\s*G[üu]m[üu][şs][\s\S]{0,300}?<\/a>[\s\S]{0,200}?<td[^>]*>\s*(\d{1,4}[.,]\d{1,4})\s*<\/td>/i,
+      /kuveyt-turk\/gumus[\s\S]{0,400}?<td[^>]*>\s*(\d{1,4}[.,]\d{1,4})\s*<\/td>/i,
+      /Gram\s*G[üu]m[üu][şs][\s\S]{0,200}?(\d{2,4}[.,]\d{1,4})\D+\d{2,4}[.,]\d{1,4}/i
+    ];
+
+    for (const pattern of patterns) {
+      const match = html.match(pattern);
+      if (match) {
+        const alis = parseFloat(match[1].replace(",", "."));
+        if (alis > 30 && alis < 500) return alis;
+      }
+    }
+    return null;
+  }
+
+  async function fetchKuveytUsdAlis_DEPRECATED() {
+    return null;
+  }
+
+  // ============ FETCH ALL RATES (each updates UI independently) ============
+  async function fetchAllRates() {
+    _haremUsd = null;
+    _haremGold = null;
+    _haremSilver = null;
+    let _kuveytUsd = null;
+    let _silverTl = null;
+    updateRateIndicator();
+
+    // Helper to apply silver if we have both pieces
+    const trySilver = () => {
+      if (_silverTl && _kuveytUsd) {
+        const silverUsd = _silverTl / _kuveytUsd;
+        _haremSilver = silverUsd;
+        inputs.silverPrice = silverUsd;
+        tempInputs.silverPrice = silverUsd;
+        try { saveData("portfolio_inputs", inputs); } catch (e) {}
+        renderKeepTab();
+        updateRateIndicator();
+      }
+    };
+
+    // 1. Harem page (USD/TL + Kuveyt USD Alış for silver calc)
+    fetchHaremPage().then(({ haremSatis, kuveytAlis }) => {
+      if (haremSatis) {
+        _haremUsd = haremSatis;
+        inputs.usdTl = haremSatis;
+        tempInputs.usdTl = haremSatis;
+        try { saveData("portfolio_inputs", inputs); } catch (e) {}
+        renderKeepTab();
+        updateRateIndicator();
+      }
+      if (kuveytAlis) {
+        _kuveytUsd = kuveytAlis;
+        trySilver();
+      }
+    });
+
+    // 2. Gold from Harem altın
+    fetchHaremGold().then(gold => {
+      if (gold) {
+        _haremGold = gold;
+        inputs.goldPrice = gold;
+        tempInputs.goldPrice = gold;
+        try { saveData("portfolio_inputs", inputs); } catch (e) {}
+        renderKeepTab();
+        updateRateIndicator();
+      }
+    });
+
+    // 3. Silver TL from Kuveyt
+    fetchKuveytSilverTl().then(silverTl => {
+      if (silverTl) {
+        _silverTl = silverTl;
+        trySilver();
+      }
+    });
+  }
+
+  // Fetch on load
+  fetchAllRates();
+</script>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-app.js";
+  import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+  import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-auth.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyATq-0XD6Mn1Pr_Bxl_hA27THiFT5mEbH4",
+    authDomain: "myinvestsum.firebaseapp.com",
+    projectId: "myinvestsum",
+    storageBucket: "myinvestsum.firebasestorage.app",
+    messagingSenderId: "294354403030",
+    appId: "1:294354403030:web:da52071e70f7bcaa8e1377",
+    measurementId: "G-1K1ZM7LBDZ"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+  const auth = getAuth(app);
+  const provider = new GoogleAuthProvider();
+
+  let currentUser = null;
+
+  // ===== AUTH UI =====
+  function renderAuthBar(user) {
+    let bar = document.getElementById("auth-bar");
+    if (!bar) {
+      bar = document.createElement("div");
+      bar.id = "auth-bar";
+      bar.style.cssText = "position:fixed; bottom:0; left:0; right:0; background:#1c1917; color:#fafaf9; padding:10px 16px; display:flex; align-items:center; justify-content:space-between; font-size:11px; z-index:50;";
+      document.body.appendChild(bar);
+    }
+    if (user) {
+      bar.innerHTML = `
+        <span style="color:#34d399;">☁️ Synced · ${user.email}</span>
+        <button id="fb-signout-btn" style="background:none; border:1px solid #44403c; color:#a8a29e; padding:4px 10px; font-size:10px; cursor:pointer; font-family:inherit;">Sign Out</button>
+      `;
+      document.getElementById("fb-signout-btn").onclick = async () => {
+        if (confirm("Sign out?")) await signOut(auth);
+      };
+    } else {
+      bar.innerHTML = `
+        <span style="color:#a8a29e;">☁️ Not synced</span>
+        <button id="fb-signin-btn" style="background:#4285F4; border:none; color:white; padding:6px 14px; font-size:11px; cursor:pointer; font-family:inherit; font-weight:bold;">🔐 Sign in with Google</button>
+      `;
+      document.getElementById("fb-signin-btn").onclick = async () => {
+        try { await signInWithPopup(auth, provider); }
+        catch (e) { alert("Sign in failed: " + e.message); }
+      };
+    }
+  }
+
+  // ===== FIRESTORE HELPERS =====
+  async function fbSave(key, data) {
+    if (!currentUser) return;
+    try {
+      await setDoc(doc(db, "users", currentUser.uid, "data", key), { value: JSON.stringify(data) });
+      console.log("✓ Saved to Firestore:", key);
+    } catch (e) { console.error("Firebase save error:", key, e); }
+  }
+
+  async function fbLoad(key) {
+    if (!currentUser) return null;
+    try {
+      const snap = await getDoc(doc(db, "users", currentUser.uid, "data", key));
+      if (snap.exists()) return JSON.parse(snap.data().value);
+    } catch (e) { console.error("Firebase load error:", key, e); }
+    return null;
+  }
+
+  // ===== SYNC FROM CLOUD =====
+  async function syncFromCloud() {
+    if (!currentUser) return;
+    console.log("🔄 Syncing from cloud...");
+
+    const [cloudInputs, cloudTx, cloudSnaps] = await Promise.all([
+      fbLoad("inputs"),
+      fbLoad("transactions"),
+      fbLoad("snapshots")
+    ]);
+
+    console.log("Cloud data:", { cloudInputs: !!cloudInputs, cloudTx: !!cloudTx, cloudSnaps: !!cloudSnaps });
+
+    // If user has NO cloud data at all → start fresh (new user)
+    // If user HAS cloud data → load it
+    // Never fall back to localStorage (which may contain another user's data)
+    window.dispatchEvent(new CustomEvent("fb-sync-load", {
+      detail: {
+        cloudInputs: cloudInputs || null,
+        cloudTx: cloudTx || [],
+        cloudSnaps: cloudSnaps || [],
+        isNewUser: !cloudInputs && !cloudTx && !cloudSnaps
+      }
+    }));
+  }
+
+  // ===== LISTEN FOR SAVE EVENTS FROM MAIN SCRIPT =====
+  window.addEventListener("fb-save", (e) => {
+    const { key, data } = e.detail;
+    fbSave(key, data);
+  });
+
+  // ===== LISTEN FOR IMPORT EVENT =====
+  window.addEventListener("fb-import", (e) => {
+    const { inputs, transactions, snapshots } = e.detail;
+    Promise.all([
+      fbSave("inputs", inputs),
+      fbSave("transactions", transactions),
+      fbSave("snapshots", snapshots)
+    ]).then(() => {
+      alert("☁️ تم رفع البيانات للـ Cloud بنجاح!");
+    });
+  });
+
+  // ===== AUTH STATE =====
+  onAuthStateChanged(auth, async (user) => {
+    currentUser = user;
+    renderAuthBar(user);
+    if (user) {
+      document.getElementById("app-content").style.display = "block";
+      document.getElementById("login-screen").style.display = "none";
+      document.body.style.overflow = "auto";
+
+      // Set userId for cache
+      window._currentUserId = user.uid;
+
+      // 1. Load cache instantly (shows data while Firebase loads)
+      window.dispatchEvent(new CustomEvent("load-cache", { detail: { uid: user.uid } }));
+
+      // 2. Sync from cloud (updates if anything changed)
+      await syncFromCloud();
+    } else {
+      window._currentUserId = null;
+      document.getElementById("app-content").style.display = "none";
+      document.getElementById("login-screen").style.display = "flex";
+      document.body.style.overflow = "hidden";
+      const btn = document.getElementById("login-btn");
+      if (btn) btn.onclick = async () => {
+        try { await signInWithPopup(auth, provider); }
+        catch (e) { alert("Sign in failed: " + e.message); }
+      };
+    }
+  });
+</script>
+
+</body>
+</html>
