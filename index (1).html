@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="ar" dir="ltr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="theme-color" content="#1c1917" />
+<title>Portfolio Tracker</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html, body { background: #fafaf9; font-family: Georgia, 'Times New Roman', serif; color: #1c1917; min-height: 100vh; }
+  body { padding: 16px 16px 80px; max-width: 480px; margin: 0 auto; }
+
+  .header { padding-bottom: 16px; border-bottom: 2px solid #1c1917; margin-bottom: 24px; }
+  .header-row { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 4px; }
+  .label-tiny { font-size: 11px; text-transform: uppercase; letter-spacing: 0.3em; color: #57534e; }
+  .date-tiny { font-size: 10px; color: #78716c; letter-spacing: 0.15em; }
+  h1 { font-size: 30px; font-weight: bold; font-style: italic; color: #1c1917; }
+
+  .tabs { display: flex; margin-bottom: 24px; border-bottom: 1px solid #d6d3d1; overflow-x: auto; }
+  .tab { flex: 1; min-width: 80px; padding: 12px 6px; font-size: 10px; text-transform: uppercase; letter-spacing: 0.18em; color: #78716c; background: none; border: none; cursor: pointer; font-family: inherit; border-bottom: 2px solid transparent; transition: all 0.2s; white-space: nowrap; }
+  .tab.active { color: #1c1917; border-bottom-color: #1c1917; font-weight: bold; }
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  .total-card { background: #1c1917; color: #fafaf9; padding: 24px; margin-bottom: 24px; position: relative; overflow: hidden; }
+  .total-card::after { content: '$'; position: absolute; top: -40px; right: -10px; font-size: 180px; font-weight: bold; opacity: 0.05; line-height: 1; }
+  .total-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.3em; color: #a8a29e; margin-bottom: 8px; }
+  .total-value { font-size: 36px; font-weight: bold; margin-bottom: 12px; }
+  .total-pnl-row { display: flex; align-items: center; gap: 8px; padding-top: 12px; border-top: 1px solid #44403c; font-size: 13px; }
+  .pnl-positive { color: #34d399; }
+  .pnl-negative { color: #fb7185; }
+  .total-cost { color: #a8a29e; font-size: 11px; margin-left: auto; }
+
+  .section-title { font-size: 11px; text-transform: uppercase; letter-spacing: 0.25em; color: #44403c; margin-bottom: 12px; }
+
+  .panel { background: white; border: 1px solid #d6d3d1; margin-bottom: 24px; }
+  .panel-header { display: flex; align-items: center; justify-content: space-between; padding: 16px; border-bottom: 1px solid #e7e5e4; }
+  .panel-header h3 { font-size: 11px; text-transform: uppercase; letter-spacing: 0.25em; color: #44403c; font-weight: normal; }
+  .btn-edit { background: none; border: none; cursor: pointer; font-size: 12px; color: #57534e; font-family: inherit; padding: 0; }
+  .btn-icon { background: none; border: none; cursor: pointer; padding: 4px 8px; font-family: inherit; font-size: 13px; }
+  .btn-save { color: #047857; }
+  .btn-cancel { color: #be123c; }
+  .btn-primary { background: #1c1917; color: #fafaf9; border: none; padding: 12px 24px; font-family: inherit; font-size: 12px; text-transform: uppercase; letter-spacing: 0.2em; cursor: pointer; width: 100%; }
+  .btn-primary:hover { background: #44403c; }
+  .btn-secondary { background: white; color: #1c1917; border: 1px solid #1c1917; padding: 8px 16px; font-family: inherit; font-size: 11px; text-transform: uppercase; letter-spacing: 0.15em; cursor: pointer; }
+  .btn-danger-link { color: #be123c; background: none; border: none; cursor: pointer; font-family: inherit; font-size: 14px; }
+
+  .input-row { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; border-bottom: 1px solid #f5f5f4; }
+  .input-row:last-child { border-bottom: none; }
+  .input-label { font-size: 12px; color: #57534e; }
+  .input-value { font-size: 13px; font-weight: 500; color: #1c1917; }
+  .input-edit-wrap { display: flex; align-items: center; gap: 4px; }
+  .input-symbol { color: #78716c; font-size: 13px; }
+  .input-field { width: 110px; text-align: right; font-size: 13px; border: none; border-bottom: 1px solid #a8a29e; background: transparent; font-family: inherit; padding: 2px 0; }
+  .input-field:focus { outline: none; border-bottom-color: #1c1917; }
+
+  .asset-card { background: white; border: 1px solid #d6d3d1; padding: 16px; margin-bottom: 12px; }
+  .asset-row { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 8px; }
+  .asset-left { display: flex; align-items: center; gap: 12px; }
+  .asset-color-bar { width: 8px; height: 32px; }
+  .asset-name { font-size: 13px; font-weight: bold; letter-spacing: 0.1em; color: #1c1917; }
+  .asset-weight { font-size: 10px; color: #78716c; text-transform: uppercase; letter-spacing: 0.15em; }
+  .asset-right { text-align: right; }
+  .asset-value { font-size: 18px; font-weight: bold; color: #1c1917; }
+  .asset-pnl { font-size: 12px; font-weight: 500; }
+  .asset-pnl.pos { color: #047857; }
+  .asset-pnl.neg { color: #be123c; }
+  .weight-bar { height: 4px; background: #f5f5f4; margin-top: 8px; }
+  .weight-fill { height: 100%; transition: width 0.3s; }
+
+  .dist-bar { display: flex; height: 12px; overflow: hidden; }
+  .dist-segment { transition: width 0.3s; }
+  .dist-legend { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 16px; }
+  .legend-item { display: flex; align-items: center; gap: 8px; font-size: 11px; }
+  .legend-dot { width: 8px; height: 8px; }
+  .legend-pct { color: #1c1917; font-weight: 500; margin-left: auto; }
+
+  .contrib-row { display: flex; align-items: center; justify-content: space-between; font-size: 12px; padding: 6px 0; }
+  .contrib-name { color: #44403c; font-weight: 500; }
+  .contrib-bar-wrap { flex: 1; margin: 0 12px; height: 4px; background: #f5f5f4; position: relative; }
+  .contrib-bar-zero { position: absolute; top: 0; left: 50%; width: 1px; height: 100%; background: #a8a29e; }
+  .contrib-bar { position: absolute; top: 0; height: 100%; }
+  .contrib-bar.pos { left: 50%; background: #047857; }
+  .contrib-bar.neg { right: 50%; background: #be123c; }
+  .contrib-pct { font-weight: 500; font-variant-numeric: tabular-nums; min-width: 60px; text-align: right; }
+
+  .snapshot-action { background: white; border: 1px solid #d6d3d1; padding: 16px; margin-bottom: 16px; }
+  .snapshot-row, .tx-row { background: white; border: 1px solid #d6d3d1; padding: 12px 16px; margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between; }
+  .snapshot-info, .tx-info { flex: 1; }
+  .snapshot-info strong, .tx-info strong { font-size: 14px; color: #1c1917; display: block; margin-bottom: 2px; }
+  .snapshot-info p, .tx-info p { font-size: 11px; color: #78716c; }
+
+  .tx-tag { display: inline-block; padding: 2px 6px; font-size: 9px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.1em; margin-right: 6px; }
+  .tag-akbank { background: #b91c1c; color: white; }
+  .tag-midas { background: #7c3aed; color: white; }
+  .tag-gold { background: #c9a961; color: white; }
+  .tag-silver { background: #9aa0a6; color: white; }
+
+  .tx-amount-pos { color: #047857; font-weight: bold; }
+  .tx-amount-neg { color: #be123c; font-weight: bold; }
+
+  .chart-card { background: white; border: 1px solid #d6d3d1; padding: 16px; margin-bottom: 16px; position: relative; }
+  .chart-title { font-size: 11px; text-transform: uppercase; letter-spacing: 0.25em; color: #44403c; margin-bottom: 16px; }
+  .chart-svg { width: 100%; height: 240px; display: block; }
+  .chart-svg .chart-dot { cursor: pointer; transition: r 0.2s; }
+  .chart-svg .chart-dot:hover { r: 6; }
+  .chart-legend { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 12px; font-size: 11px; }
+  .chart-legend-item { display: flex; align-items: center; gap: 6px; }
+  .chart-legend-color { width: 12px; height: 3px; }
+  .chart-tooltip { background: #1c1917; color: #fafaf9; padding: 8px 12px; font-size: 11px; margin-bottom: 12px; border-radius: 4px; text-align: center; }
+  .chart-tooltip strong { color: #fafaf9; }
+
+  .chart-stats { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 16px; }
+  .stat-box { background: white; border: 1px solid #d6d3d1; padding: 10px; text-align: center; }
+  .stat-label { font-size: 9px; text-transform: uppercase; letter-spacing: 0.15em; color: #78716c; margin-bottom: 4px; }
+  .stat-value { font-size: 14px; font-weight: bold; color: #1c1917; }
+
+  .empty-state { text-align: center; padding: 48px 16px; color: #78716c; font-size: 13px; background: white; border: 1px solid #d6d3d1; }
+  .empty-state strong { display: block; font-size: 16px; color: #1c1917; margin-bottom: 8px; }
+
+  .footer { font-size: 9px; color: #a8a29e; text-align: center; margin-top: 24px; letter-spacing: 0.2em; text-transform: uppercase; }
+
+  .modal-overlay { position: fixed; inset: 0; background: rgba(28, 25, 23, 0.6); display: none; align-items: center; justify-content: center; z-index: 100; padding: 20px; }
+  .modal-overlay.active { display: flex; }
+  .modal { background: white; padding: 24px; max-width: 400px; width: 100%; max-height: 90vh; overflow-y: auto; }
+  /* ===== RESPONSIVE DESKTOP ===== */
+  @media (min-width: 768px) {
+    body { padding: 32px 32px 60px; max-width: 1100px; }
+    .tabs { max-width: 600px; }
+
+    /* Two column layout for current tab */
+    #tab-current .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+    #tab-current .full-col { grid-column: 1 / -1; }
+
+    .asset-card { padding: 20px; }
+    .asset-value { font-size: 22px; }
+    .total-value { font-size: 44px; }
+    .total-card { padding: 32px; }
+
+    .panel { margin-bottom: 32px; }
+    .chart-svg { height: 300px; }
+    .modal { max-width: 480px; }
+  }
+
+  @media (min-width: 1024px) {
+    body { max-width: 1200px; }
+    #tab-current .assets-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- APP CONTENT -->
+<div id="app-content">
+  <div class="header-row">
+    <span class="label-tiny">Portfolio</span>
+    <div style="text-align:right;">
+      <div class="date-tiny" id="today-date"></div>
+      <div class="date-tiny" id="today-time" style="margin-top:2px;"></div>
+    </div>
+  </div>
+  <h1>Invest Summary</h1>
+  <div id="rate-indicator" style="margin-top:8px;"><span style="font-size:10px; color:#a8a29e;">💱 Fetching live rate...</span></div>
+</div>
+
+<div class="tabs">
+  <button class="tab active" data-tab="current" onclick="switchTab('current')">Current</button>
+  <button class="tab" data-tab="movements" onclick="switchTab('movements')">Movements</button>
+  <button class="tab" data-tab="history" onclick="switchTab('history')">History</button>
+  <button class="tab" data-tab="charts" onclick="switchTab('charts')">Charts</button>
+  <button class="tab" data-tab="realized" onclick="switchTab('realized')">Realized 💰</button>
+  <button class="tab" data-tab="tools" onclick="switchTab('tools')">Tools 🛠</button>
+  <button class="tab" data-tab="ai" onclick="switchTab('ai')">AI 🤖</button>
+</div>
+
+<!-- CURRENT TAB -->
+<div id="tab-current" class="tab-content active">
+  <div class="total-card">
+    <p class="total-label">Total Value</p>
+    <p class="total-value" id="total-value">$0.00</p>
+    <div class="total-pnl-row">
+      <span id="total-arrow">▲</span>
+      <span id="total-pnl">+$0.00 (0.00%)</span>
+      <span class="total-cost" id="total-cost">Cost: $0.00</span>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-header">
+      <h3>Live Inputs</h3>
+      <div id="edit-controls">
+        <button class="btn-edit" onclick="enterEdit()">✎ Update</button>
+      </div>
+    </div>
+    <div id="inputs-list"></div>
+  </div>
+
+  <h3 class="section-title">Assets</h3>
+  <div id="assets-list" class="assets-grid"></div>
+
+  <div class="panel" style="padding: 16px;">
+    <h3 style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.25em; color: #44403c; font-weight: normal; margin-bottom: 16px;">Distribution</h3>
+    <div class="dist-bar" id="dist-bar"></div>
+    <div class="dist-legend" id="dist-legend"></div>
+  </div>
+
+  <div class="panel" style="padding: 16px; margin-top: 24px;">
+    <h3 style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.25em; color: #44403c; font-weight: normal; margin-bottom: 12px;">P/L Contribution</h3>
+    <div id="contrib-list"></div>
+  </div>
+
+  <h3 class="section-title" style="margin-top:24px;">MIDAS Breakdown 💜</h3>
+  
+  <div class="panel">
+    <div class="panel-header">
+      <h3>TL & USD Sections</h3>
+      <div id="midas-edit-controls">
+        <button class="btn-edit" onclick="enterMidasEdit()">✎ Update</button>
+      </div>
+    </div>
+    <div id="midas-inputs-list"></div>
+  </div>
+
+  <div id="midas-breakdown"></div>
+
+  <!-- LIABILITIES -->
+  <h3 class="section-title" style="margin-top:24px;">💳 Liabilities</h3>
+  <div class="panel" style="padding:16px; margin-bottom:8px;">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+      <p style="font-size:12px; color:#78716c;">الديون المستحقة — بتنطرح من الـ Net Worth</p>
+      <button class="btn-edit" onclick="openLiabilityModal()">+ Add</button>
+    </div>
+    <div id="liabilities-list"></div>
+    <div id="liabilities-total" style="margin-top:8px;"></div>
+  </div>
+</div>
+
+<!-- LIABILITY MODAL -->
+<div id="liability-modal" class="modal-overlay">
+  <div class="modal-content">
+    <h3 id="liability-modal-title" class="modal-title">Add Liability</h3>
+    <div class="form-group">
+      <label>اسم الدين</label>
+      <input type="text" id="lb-name" placeholder="e.g. قرض فضة, ديون صديق" />
+    </div>
+    <div class="form-group">
+      <label>المبلغ ($)</label>
+      <input type="number" id="lb-amount" step="0.01" inputmode="decimal" placeholder="0.00" />
+    </div>
+    <div class="form-group">
+      <label>ملاحظة (اختياري)</label>
+      <input type="text" id="lb-note" placeholder="e.g. قرض من البنك" />
+    </div>
+    <div class="modal-actions">
+      <button class="btn-secondary" onclick="closeLiabilityModal()">Cancel</button>
+      <button class="btn-secondary" style="background:#1c1917; color:white;" onclick="saveLiability()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- MOVEMENTS TAB -->
+<div id="tab-movements" class="tab-content">
+  <div class="snapshot-action">
+    <h3 style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.25em; color: #44403c; margin-bottom: 8px;">Capital Movements</h3>
+    <p style="font-size: 12px; color: #57534e; margin-bottom: 12px;">سجل أي حركة: إيداع، سحب، شراء، بيع. التكلفة بتتحدث تلقائياً.</p>
+    <button class="btn-primary" onclick="openTxModal()">+ Add Transaction</button>
+  </div>
+
+  <div class="panel" style="margin-bottom:16px;">
+    <div class="panel-header">
+      <h3>Capital Summary</h3>
+    </div>
+    <div id="sum-akbank" class="input-row" style="display:flex; justify-content:space-between; padding:10px 16px; font-size:12px; border-bottom:1px solid #f5f5f4;">
+    </div>
+    <div id="sum-midas" class="input-row" style="display:flex; justify-content:space-between; padding:10px 16px; font-size:12px; border-bottom:1px solid #f5f5f4;">
+    </div>
+    <div id="sum-gold" class="input-row" style="display:flex; justify-content:space-between; padding:10px 16px; font-size:12px; border-bottom:1px solid #f5f5f4;">
+    </div>
+    <div id="sum-silver" class="input-row" style="display:flex; justify-content:space-between; padding:10px 16px; font-size:12px;">
+    </div>
+  </div>
+
+  <h3 class="section-title">Transaction History</h3>
+  <div id="tx-list"></div>
+</div>
+
+<!-- HISTORY TAB -->
+<div id="tab-history" class="tab-content">
+  <div class="snapshot-action">
+    <h3 style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.25em; color: #44403c; margin-bottom: 8px;">Save Snapshot</h3>
+    <p style="font-size: 12px; color: #57534e; margin-bottom: 12px;">احفظ القيم الحالية كنقطة في الزمن.</p>
+    <button class="btn-primary" onclick="saveSnapshot()">📸 Save Today's Snapshot</button>
+  </div>
+
+  <div class="snapshot-action">
+    <h3 style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.25em; color: #44403c; margin-bottom: 8px;">Backup &amp; Restore</h3>
+    <p style="font-size: 12px; color: #57534e; margin-bottom: 12px;">📥 Export = نزّل ملف فيه كل البيانات. 📤 Import = ارجاع البيانات من ملف.</p>
+    <div style="display:flex; gap:8px;">
+      <button class="btn-primary" style="flex:1;" onclick="exportData()">📥 Export</button>
+      <button class="btn-primary" style="flex:1; background:#44403c;" onclick="document.getElementById('import-file').click()">📤 Import</button>
+    </div>
+    <input type="file" id="import-file" accept=".json" style="display:none;" onchange="importData(event)" />
+  </div>
+
+  <h3 class="section-title">Saved Snapshots</h3>
+  <div id="snapshots-list"></div>
+</div>
+
+<!-- CHARTS TAB -->
+<div id="tab-charts" class="tab-content">
+  <div id="charts-content"></div>
+</div>
+
+<!-- REALIZED P/L TAB -->
+<div id="tab-realized" class="tab-content">
+
+  <div class="panel">
+    <div class="panel-header">
+      <h3>💰 Realized P/L</h3>
+    </div>
+    <div style="padding:16px;">
+      <p style="font-size:12px; color:#57534e; margin-bottom:12px;">سجّل الأرباح والخسائر المحققة من البيع — بتأثر على الـ Total P/L.</p>
+
+      <div class="form-grid" style="margin-bottom:8px;">
+        <div class="form-group">
+          <label>Asset</label>
+          <select id="rl-asset">
+            <option value="AKBANK">AKBANK</option>
+            <option value="MIDAS">MIDAS</option>
+            <option value="GOLD">GOLD</option>
+            <option value="SILVER">SILVER</option>
+            <option value="OTHER">Other</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Type</label>
+          <select id="rl-type">
+            <option value="loss">Loss (خسارة)</option>
+            <option value="gain">Gain (ربح)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Amount ($)</label>
+          <input type="number" id="rl-amount" step="0.01" inputmode="decimal" placeholder="e.g. 211.50" />
+        </div>
+        <div class="form-group">
+          <label>Date</label>
+          <input type="date" id="rl-date" />
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Note</label>
+        <input type="text" id="rl-note" placeholder="e.g. Sold 400g silver at loss" />
+      </div>
+      <button class="btn-primary" onclick="addRealizedEntry()">+ Add Entry</button>
+    </div>
+  </div>
+
+  <div id="realized-summary" class="panel" style="padding:16px;"></div>
+  <div id="realized-list"></div>
+
+</div>
+
+<!-- TOOLS TAB -->
+<div id="tab-tools" class="tab-content">
+  <div class="panel" style="padding:16px; margin-bottom:8px; border-left:4px solid #be123c;">
+    <h3 style="font-size:11px; text-transform:uppercase; letter-spacing:0.25em; color:#44403c; margin-bottom:8px;">🔧 Fix Historical Snapshots</h3>
+    <p style="font-size:12px; color:#78716c; margin-bottom:12px;">يصحح الـ snapshots القديمة — Silver cost proportional + Realized P/L</p>
+    <button class="btn-primary" onclick="fixSnapshots()">⚙️ Fix Snapshots</button>
+  </div>
+
+  <!-- 1. PRICE ALERTS -->
+  <div class="panel">
+    <div class="panel-header">
+      <h3>🔔 Price Alerts</h3>
+      <button class="btn-edit" onclick="checkAlerts()">↻ Check Now</button>
+    </div>
+    <div style="padding:16px;">
+      <p style="font-size:12px; color:#57534e; margin-bottom:12px;">حدد سعر هدف — التطبيق يخبرك لما يوصل.</p>
+      <div class="form-grid" style="margin-bottom:8px;">
+        <div class="form-group">
+          <label>Gold Target ($/g)</label>
+          <input type="number" id="alert-gold" step="0.01" inputmode="decimal" placeholder="e.g. 150" />
+        </div>
+        <div class="form-group">
+          <label>Silver Target ($/g)</label>
+          <input type="number" id="alert-silver" step="0.0001" inputmode="decimal" placeholder="e.g. 2.50" />
+        </div>
+        <div class="form-group">
+          <label>USD/TL Target (₺)</label>
+          <input type="number" id="alert-usdtl" step="0.001" inputmode="decimal" placeholder="e.g. 46" />
+        </div>
+        <div class="form-group">
+          <label>Total Value Target ($)</label>
+          <input type="number" id="alert-total" step="1" inputmode="decimal" placeholder="e.g. 5000" />
+        </div>
+      </div>
+      <button class="btn-primary" onclick="saveAlerts()">💾 Save Alerts</button>
+      <div id="alerts-status" style="margin-top:12px;"></div>
+    </div>
+  </div>
+
+  <!-- 2. DCA CALCULATOR -->
+  <div class="panel">
+    <div class="panel-header"><h3>📊 DCA Calculator</h3></div>
+    <div style="padding:16px;">
+      <p style="font-size:12px; color:#57534e; margin-bottom:12px;">شو يصير لمحفظتك لو ضفت مبلغ شهري ثابت؟</p>
+      <div class="form-grid" style="margin-bottom:8px;">
+        <div class="form-group">
+          <label>Monthly Addition ($)</label>
+          <input type="number" id="dca-monthly" step="10" inputmode="decimal" placeholder="e.g. 150" value="150" />
+        </div>
+        <div class="form-group">
+          <label>Months</label>
+          <input type="number" id="dca-months" step="1" inputmode="decimal" placeholder="e.g. 12" value="12" />
+        </div>
+        <div class="form-group">
+          <label>Expected Annual Return (%)</label>
+          <input type="number" id="dca-return" step="0.1" inputmode="decimal" placeholder="e.g. 8" value="8" />
+        </div>
+        <div class="form-group">
+          <label>Add to Asset</label>
+          <select id="dca-asset">
+            <option value="total">Total Portfolio</option>
+            <option value="MIDAS">MIDAS</option>
+            <option value="GOLD">GOLD</option>
+            <option value="SILVER">SILVER</option>
+          </select>
+        </div>
+      </div>
+      <button class="btn-primary" onclick="calcDCA()">📊 Calculate</button>
+      <div id="dca-result" style="margin-top:16px;"></div>
+    </div>
+  </div>
+
+  <!-- 3. REBALANCING -->
+  <div class="panel">
+    <div class="panel-header"><h3>⚖️ Rebalancing Alert</h3></div>
+    <div style="padding:16px;">
+      <p style="font-size:12px; color:#57534e; margin-bottom:12px;">حدد التوزيع المثالي — يخبرك لما انحرف كثير.</p>
+      <div id="rebalance-inputs"></div>
+      <p style="font-size:10px; color:#a8a29e; margin-bottom:12px;">المجموع لازم يساوي 100%</p>
+      <button class="btn-primary" onclick="calcRebalance()">⚖️ Check Balance</button>
+      <div id="rebalance-result" style="margin-top:16px;"></div>
+    </div>
+  </div>
+
+</div>
+
+<!-- AI TAB -->
+<div id="tab-ai" class="tab-content">
+  <div class="snapshot-action">
+    <h3 style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.25em; color: #44403c; margin-bottom: 8px;">🤖 AI Portfolio Analysis</h3>
+    <p style="font-size: 12px; color: #57534e; margin-bottom: 12px;">اضغط Copy، روح على Claude.ai، الصق — وأنا أحلل محفظتك فوراً.</p>
+    <button class="btn-primary" onclick="copyAnalysisPrompt()">📋 Copy Analysis Prompt</button>
+  </div>
+  <div id="ai-output"></div>
+</div>
+
+<p class="footer">tax 0.2% included on metals · costs from your transactions</p>
+
+
+
+<!-- TRANSACTION MODAL -->
+<div class="modal-overlay" id="tx-modal">
+  <div class="modal">
+    <h3 id="tx-modal-title">Add Transaction</h3>
+
+    <div class="form-group">
+      <label>Asset</label>
+      <select id="tx-asset" onchange="updateTxForm()">
+        <option value="AKBANK">AKBANK (₺)</option>
+        <option value="MIDAS_USD">MIDAS - USD ETFs ($)</option>
+        <option value="MIDAS_TL">MIDAS - Turkish Stocks (₺)</option>
+        <option value="GOLD">GOLD (gram)</option>
+        <option value="SILVER">SILVER (gram)</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label>Type</label>
+      <select id="tx-type" onchange="updateTxForm()">
+        <option value="deposit">Deposit / Buy</option>
+        <option value="withdraw">Withdraw / Sell</option>
+      </select>
+    </div>
+
+    <div class="form-grid">
+      <div class="form-group" id="tx-amount-group">
+        <label id="tx-amount-label">Amount</label>
+        <input type="number" id="tx-amount" step="0.01" inputmode="decimal" />
+      </div>
+      <div class="form-group" id="tx-price-group" style="display:none;">
+        <label>Price/gram ($)</label>
+        <input type="number" id="tx-price" step="0.0001" inputmode="decimal" />
+      </div>
+      <div class="form-group" id="tx-usd-rate-group">
+        <label>USD/TL Rate at Transaction</label>
+        <div style="display:flex; gap:8px;">
+          <input type="number" id="tx-usd-rate" step="0.001" inputmode="decimal" placeholder="e.g. 45.026" style="flex:1; padding:10px; border:1px solid #d6d3d1; font-family:inherit; font-size:13px;" />
+          <button type="button" onclick="fetchRateForTx()" style="padding:10px 14px; background:#fafaf9; border:1px solid #d6d3d1; font-family:inherit; font-size:12px; cursor:pointer; white-space:nowrap;">↻ Fetch</button>
+        </div>
+      </div>
+
+      <div class="form-group" id="tx-usd-equiv-group" style="display:none;">
+        <label>USD Equivalent ($)</label>
+        <input type="number" id="tx-usd-equiv" step="0.01" inputmode="decimal" placeholder="e.g. 22.47" />
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>Date</label>
+      <input type="date" id="tx-date" />
+    </div>
+
+    <div class="form-group">
+      <label>Note (optional)</label>
+      <input type="text" id="tx-note" placeholder="e.g., Salary deposit" />
+    </div>
+
+    <div class="form-group" id="tx-realized-group" style="display:none;">
+      <label>Realized P/L ($) — اختياري</label>
+      <div style="display:flex; gap:8px;">
+        <select id="tx-realized-type" style="width:90px; padding:10px; border:1px solid #d6d3d1; font-family:inherit; font-size:13px; background:white;">
+          <option value="loss">Loss</option>
+          <option value="gain">Gain</option>
+        </select>
+        <input type="number" id="tx-realized-pnl" step="0.01" inputmode="decimal" placeholder="0.00" style="flex:1; padding:10px; border:1px solid #d6d3d1; font-family:inherit; font-size:13px;" />
+      </div>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn-secondary" onclick="closeTxModal()">Cancel</button>
+      <button id="save-tx-btn" class="btn-secondary" style="background:#1c1917; color:white;" onclick="addTransaction()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- CONFIRM MODAL -->
+<div class="modal-overlay" id="confirm-modal">
+  <div class="modal">
+    <h3 id="modal-title">Confirm</h3>
+    <p id="modal-text"></p>
+    <div class="modal-actions">
+      <button class="btn-secondary" onclick="closeModal()">Cancel</button>
+      <button class="btn-secondary" style="background:#be123c; color:white; border-color:#be123c;" onclick="confirmAction()">Delete</button>
+    </div>
+  </div>
+</div>
+
+<script src="app.js"></script>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-app.js";
+  import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/12.12.1/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyATq-0XD6Mn1Pr_Bxl_hA27THiFT5mEbH4",
+    authDomain: "myinvestsum.firebaseapp.com",
+    projectId: "myinvestsum",
+    storageBucket: "myinvestsum.firebasestorage.app",
+    messagingSenderId: "294354403030",
+    appId: "1:294354403030:web:da52071e70f7bcaa8e1377"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+  const DATA_PATH = "users/D0jl5ASTH5ZmLk7Dzm6gGfIpnHr2/data";
+
+  async function fbSave(key, data) {
+    try {
+      await setDoc(doc(db, DATA_PATH, key), { value: JSON.stringify(data) });
+    } catch (e) { console.error("Firebase save error:", key, e); }
+  }
+
+  async function fbLoad(key) {
+    try {
+      const snap = await getDoc(doc(db, DATA_PATH, key));
+      if (snap.exists()) return JSON.parse(snap.data().value);
+    } catch (e) { console.error("Firebase load error:", key, e); }
+    return null;
+  }
+
+  // Load data from Firestore on startup - compare with localStorage
+  async function syncFromCloud() {
+    const timeout = new Promise((_, reject) => setTimeout(() => reject(new Error("timeout")), 10000));
+    try {
+      const [cloudInputs, cloudTx, cloudSnaps, cloudRealized, cloudLiabilities] = await Promise.race([
+        Promise.all([
+          fbLoad("inputs"), fbLoad("transactions"), fbLoad("snapshots"), fbLoad("realized"), fbLoad("liabilities")
+        ]),
+        timeout.then(() => { throw new Error("timeout"); })
+      ]);
+
+      let localInputs = null;
+      try {
+        const s = localStorage.getItem("portfolio_inputs");
+        if (s) localInputs = JSON.parse(s);
+      } catch(e) {}
+
+      const localTime = localInputs?._savedAt ? new Date(localInputs._savedAt).getTime() : 0;
+      const cloudTime = cloudInputs?._savedAt ? new Date(cloudInputs._savedAt).getTime() : 0;
+
+      let finalInputs = cloudInputs;
+      if (localTime > cloudTime && localInputs) {
+        finalInputs = localInputs;
+        fbSave("inputs", localInputs);
+        console.log("💾 Local newer → pushed to cloud");
+      } else {
+        if (cloudInputs) {
+          try { localStorage.setItem("portfolio_inputs", JSON.stringify(cloudInputs)); } catch(e) {}
+        }
+        console.log("☁️ Cloud newer → loaded");
+      }
+
+      window.dispatchEvent(new CustomEvent("fb-sync-load", {
+        detail: { cloudInputs: finalInputs, cloudTx, cloudSnaps, cloudRealized, cloudLiabilities }
+      }));
+    } catch(err) {
+      console.error("Sync error:", err);
+      // Show app with localStorage data even if Firebase fails
+      window.dispatchEvent(new CustomEvent("fb-sync-load", {
+        detail: { cloudInputs: null, cloudTx: null, cloudSnaps: null, cloudRealized: null, cloudLiabilities: null }
+      }));
+    }
+  }
+
+  // Save events from main script
+  window.addEventListener("fb-save", (e) => fbSave(e.detail.key, e.detail.data));
+  window.addEventListener("fb-import", (e) => {
+    const { inputs, transactions, snapshots } = e.detail;
+    Promise.all([fbSave("inputs", inputs), fbSave("transactions", transactions), fbSave("snapshots", snapshots)])
+      .then(() => alert("☁️ تم رفع البيانات للـ Cloud!"));
+  });
+
+  // Show loading spinner immediately
+  document.getElementById("app-content").style.display = "block";
+  const _loadOverlay = document.createElement("div");
+  _loadOverlay.id = "loading-overlay";
+  _loadOverlay.style.cssText = "position:fixed;inset:0;background:#fafaf9;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:100;color:#78716c;";
+  _loadOverlay.innerHTML = `<div style="font-size:40px;margin-bottom:16px;display:inline-block;animation:spin 1s linear infinite;">↻</div><p style="font-size:12px;letter-spacing:0.2em;text-transform:uppercase;">Loading...</p><style>@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}</style>`;
+  document.body.appendChild(_loadOverlay);
+
+  // Sync from Firebase - always use cloud as source of truth
+  syncFromCloud();
+</script>
+
+</body>
+</html>
